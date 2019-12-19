@@ -1,22 +1,47 @@
-export let Evt = {
+export let Fire = {
 	classes: {
 
 	},
-	on: (cls, name, obj) => {
+	init: (cls, name) => {
 		if (!cls.__events) cls.__events = [];
-		if (!cls.__events[name]) cls.__events[name] = {res: null, list: []};
-		cls.__events[name].res = obj;
-		var p = new Promise((resolve, reject) => {
-			setTimeout(() => resolve(777), 1);
-		});
-		return p;
+		if (!cls.__events[name]) cls.__events[name] = {res: new Map, list: []};
+		return cls.__events[name];
 	},
-	handler: () => {
+	on: (cls, name, obj) => {
+		var context = Fire.init(cls, name);
+		
+		var arg = context.res.get(obj);
+		if (!arg) context.res.set(obj, arg = {});
+		if (arg.executed) return Promise.resolve(arg.res);
 
+		if (arg.promise) return arg.promise;
+
+		let i = 0;
+		let promise = (async function test(res) {
+			if (res != null) return res;
+			let hand = context.list[i++];
+			if (!hand) return;
+			var r = hand(obj);
+			if (r != null && r.then) return r.then(test, res => res);
+			return test(r);
+		})();
+
+		promise.then( res => {
+			arg.executed = true;
+			arg.res = res
+		});
+		return arg.promise = promise;
 	},
-	quench: () => {
+	handler: (cls, name, callback) => {
+		var context = Fire.init(cls, name);
+		context.list.push(callback);
+		context.res.forEach(arg => {
+			if (arg.executed && arg.res == null) callback(context.obj).then( res => context.res = res);	
+		});
+	},
+	tik: (cls, name, obj) => {
 
 	}
 }
 
-export default Evt;
+export default Fire;
