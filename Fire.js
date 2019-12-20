@@ -22,7 +22,7 @@ export let Fire = {
 			let hand = context.list[i++];
 			if (!hand) return;
 			var r = hand(obj);
-			if (r != null && r.then) return r.then(test, res => res);
+			if (r != null && r.then) return r.then(test);
 			return test(r);
 		})();
 
