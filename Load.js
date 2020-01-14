@@ -6,12 +6,12 @@ export let Load = {
 
 
 Fire.handler(Load, 'fetch', src => {
-	return fetch(src).then( res => res.json());
+	return fetch('/' + src).then( res => res.json());
 });
 
 Fire.handler(Load, 'import', src => {
-	return Fire.on(Load, 'fetch', '/-access/').then( json => {
-		return import(src+'?t='+json.update);
+	return Fire.on(Load, 'fetch', '-access').then( json => {
+		return import(src + '?t=' + json.update);
 	});
 });
 Fire.handler(Load, 'import default', src => {
