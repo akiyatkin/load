@@ -5,6 +5,18 @@ export let Load = {
 }
 
 
+Fire.handler(Load, 'cdnjs', src => {
+	var s = document.createElement("script");
+    s.type = "text/javascript";
+    s.async = false;
+    s.defer = false;
+    s.src = src;
+    let scripts = document.getElementsByTagName("script");
+    var n = scripts[scripts.length-1];//Нашли послений скрипт
+    n.parentNode.appendChild(s, n);
+});
+
+
 Fire.handler(Load, 'fetch', src => {
 	return fetch('/' + src).then( res => res.json());
 });
