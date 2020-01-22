@@ -4,8 +4,17 @@ export let Load = {
 	on: (name, arg) => Fire.on(Load, name, arg)
 }
 
+Fire.handler(Load, 'import', src => {
+	return Fire.on(Load, 'fetch-json', '-access').then( json => {
+		return import(src + '?t=' + json.update);
+	});
+});
 
-Fire.handler(Load, 'cdnjs', src => {
+Fire.handler(Load, 'import-default', src => {
+	return Fire.on(Load, 'import', src).then( module => module.default );
+});
+
+Fire.handler(Load, 'script-src', src => {
 	var s = document.createElement("script");
     s.type = "text/javascript";
     s.async = false;
@@ -17,19 +26,11 @@ Fire.handler(Load, 'cdnjs', src => {
 });
 
 
-Fire.handler(Load, 'fetch', src => {
+Fire.handler(Load, 'fetch-json', src => {
 	return fetch('/' + src).then( res => res.json());
 });
 
-Fire.handler(Load, 'import', src => {
-	return Fire.on(Load, 'fetch', '-access').then( json => {
-		return import(src + '?t=' + json.update);
-	});
-});
-Fire.handler(Load, 'import default', src => {
-	return Fire.on(Load, 'import', src).then( module => {
-		return module.default;
-	});
-});
+
+
 
 export default Load;
