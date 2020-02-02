@@ -6,7 +6,8 @@ export let Load = {
 
 Fire.handler(Load, 'import', src => {
 	return Fire.on(Load, 'fetch-json', '-access').then( json => {
-		return import(src + '?t=' + json.update);
+		src += (~src.indexOf('?')? '&' : '?') + 't=' + json.update;
+		return import(src);
 	});
 });
 
