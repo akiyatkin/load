@@ -7,6 +7,17 @@ export let Fire = {
 		if (!cls.__events[name]) cls.__events[name] = {res: new Map, list: []};
 		return cls.__events[name];
 	},
+	arg: (cls, name, obj) => {
+		var context = Fire.init(cls, name);		
+		var arg = context.res.get(obj);
+		if (!arg) context.res.set(obj, arg = {});
+		return arg;
+	},
+	set: (cls, name, obj, res) => {
+		let arg = Fire.arg(cls, name, obj);
+		arg.executed = true;
+		arg.res = res;
+	},
 	on: (cls, name, obj) => {
 		var context = Fire.init(cls, name);
 		
@@ -40,7 +51,10 @@ export let Fire = {
 		});
 	},
 	tik: (cls, name, obj) => {
-
+		let arg = Fire.arg(cls, name, obj);
+		arg.executed = false;
+		delete arg.res;
+		delete arg.promise;
 	}
 }
 
