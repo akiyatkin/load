@@ -30,8 +30,9 @@ export let Load = {
 		Load.cdninit = () => { };
 	},
 	cdn: (name, src) => {
-		if (src) return (/\.css/.test(src)) ? Load.cdncss(name, src) : Load.cdnjs(name);
-		return Promise.all([Load.cdnjs(name), Load.cdncss(name)]);
+		if (src) return (/\.css/.test(src)) ? Load.cdncss(name, src) : Load.cdnjs(name, src);
+		Load.cdncss(name); //css не ждём
+		return Load.cdnjs(name); //Промис от js будем ждать
 	},
 	cdnjs: async (name, src) => {
 		await Load.cdninit();
@@ -69,18 +70,21 @@ Fire.handler(Load, 'import-default', src => {
 });
 
 Fire.handler(Load, 'script-src', src => {
-
-	let s = document.createElement("script");
-    s.type = "text/javascript";
-    s.async = false;
-    s.defer = false;
-    s.src = src;
-
-    document.getElementsByTagName('head')[0].appendChild(s);
-    
-    /*let scripts = document.getElementsByTagName("script");
-    let n = scripts[scripts.length-1];//Нашли послений скрипт
-    n.parentNode.appendChild(s, n);*/
+	return new Promise((resolve)=>{
+		let s = document.createElement("script");
+	    s.type = "text/javascript";
+	    s.async = true;
+	    s.defer = true;
+	    s.onload = function () {
+	    	resolve();
+	    }
+	    s.src = src;
+	    document.getElementsByTagName('head')[0].appendChild(s);
+	    /*let scripts = document.getElementsByTagName("script");
+	    let n = scripts[scripts.length-1];//Нашли послений скрипт
+	    n.parentNode.appendChild(s, n);*/
+	});
+	
 });
 
 
