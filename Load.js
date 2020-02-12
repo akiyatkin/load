@@ -31,7 +31,7 @@ export let Load = {
 	},
 	cdn: (name, src) => {
 		if (src) return (/\.css/.test(src)) ? Load.cdncss(name, src) : Load.cdnjs(name, src);
-		Load.cdncss(name); //css не ждём
+		Load.cdncss(name); //css не ждём, Не беспокоимся если css уже подгружен
 		return Load.cdnjs(name); //Промис от js будем ждать
 	},
 	cdnjs: async (name, src) => {
