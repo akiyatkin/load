@@ -6,9 +6,10 @@ export let Load = {
 		if (Load.wait.promise) return Load.wait.promise;
 		return Load.wait.promise = new Promise((resolve, reject) => 
 			document.addEventListener("DOMContentLoaded", () =>
-			domready(() => window.Event.one('Controller.onshow', resolve))));
+			domready(() => Event.one('Controller.onshow', resolve))));
 	},
 	cdninit: async () => {
+		Load.cdninit = () => { };
 		await Load.wait();
 		let conf = Config.get('load'), list, i, l, el, name;
 		list = document.getElementsByTagName('script');
@@ -22,21 +23,21 @@ export let Load = {
 		list = document.getElementsByTagName('link');
 		for (let i = 0, l = list.length; i < l; i++) {
 			el = list[i];
-			if (el.type != 'stylesheet') continue;
+			if (el.rel != 'stylesheet') continue;
 			if (!el.href) continue;
-			if (el.dataset.name) conf.cdncss[el.dataset.name] = el.src;
+			if (el.dataset.name) conf.cdncss[el.dataset.name] = el.href;
 			Fire.set(Load, 'css-src', el.href);
 		}
-		Load.cdninit = () => { };
+		
 	},
-	cdn: (name, src) => {
+	cdn: (name, src) => { //depricated
 		if (src) return (/\.css/.test(src)) ? Load.cdncss(name, src) : Load.cdnjs(name, src);
 		Load.cdncss(name); //css не ждём, Не беспокоимся если css уже подгружен
 		return Load.cdnjs(name); //Промис от js будем ждать
 	},
 	cdnjs: async (name, src) => {
 		await Load.cdninit();
-		let cdns = window.Config.get('load').cdnjs;
+		let cdns = Config.get('load').cdnjs;
 		if (cdns[name]) {
 			src = cdns[name];
 		} else {
@@ -47,7 +48,8 @@ export let Load = {
 	},
 	cdncss: async (name, src) => {
 		await Load.cdninit();
-		let cdns = window.Config.get('load').cdncss;
+		let cdns = Config.get('load').cdncss;
+		
 		if (cdns[name]) {
 			src = cdns[name];
 		} else {
