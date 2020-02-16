@@ -2,12 +2,22 @@ import Fire from './Fire.js';
 export {Fire};
 export let Load = {
 	on: (name, arg) => Fire.on(Load, name, arg),
+
 	wait: () => {
 		if (Load.wait.promise) return Load.wait.promise;
-		return Load.wait.promise = new Promise((resolve, reject) => 
-			document.addEventListener("DOMContentLoaded", () =>
-			domready(() => Event.one('Controller.onshow', resolve))));
+		return Load.wait.promise = new Promise((resolve) => {
+			let func = () => {
+				if (window.Controller) Event.one('Controller.onshow', resolve)
+				else resolve() 
+			}
+			if (document.readyState == 'loading') {
+				document.addEventListener("DOMContentLoaded", func)
+			} else {
+				func()
+			}
+		})
 	},
+
 	cdninit: async () => {
 		Load.cdninit = () => { };
 		await Load.wait();
