@@ -1,50 +1,76 @@
-import Wait from './Wait.js';
 import Load from './Load.js';
 export let CDN = {
+	wait: () => {
+		if (CDN.wait.promise) return Wait.promise;
+		return CDN.wait.promise = new Promise((resolve) => {
+			if (document.readyState == 'loading') {
+				document.addEventListener("DOMContentLoaded", resolve)
+			} else {
+				resolve()
+			}
+		})
+	},
 	init: async () => {
-		CDN.init = () => { };
-		await Wait();
-		let conf = Config.get('load'), list, i, l, el, name;
-		list = document.getElementsByTagName('script');
-		for (i = 0, l = list.length; i < l; i++) {
-			el = list[i];
-			if (!el.src) continue;
-			if (el.dataset.name) conf.cdnjs[el.dataset.name] = el.src;
-			Load.set('script-src', el.src);
-		}
+		CDN.init = () => { return CDN.init.promise };
+		return CDN.init.promise = new Promise(async (resolve) => {
+			let conf, list, i, l, el, name
+			list = document.getElementsByTagName('script');
+			for (i = 0, l = list.length; i < l; i++) {
+				el = list[i];
+				if (!el.src) continue;
+				Load.set('script-src', el.src);
+			}
+			await Load.on('script-src', '/-collect/?js')
+			conf = Config.get('load');
+			for (i = 0, l = list.length; i < l; i++) {
+				el = list[i];
+				if (!el.src) continue;
+				if (el.dataset.name) conf.cdnjs[el.dataset.name] = el.src;
+			}
 
-		list = document.getElementsByTagName('link');
-		for (let i = 0, l = list.length; i < l; i++) {
-			el = list[i];
-			if (el.rel != 'stylesheet') continue;
-			if (!el.href) continue;
-			if (el.dataset.name) conf.cdncss[el.dataset.name] = el.href;
-			Load.set('css-src', el.href);
+
+			list = document.getElementsByTagName('link');
+			for (let i = 0, l = list.length; i < l; i++) {
+				el = list[i];
+				if (el.rel != 'stylesheet') continue;
+				if (!el.href) continue;
+				if (el.dataset.name) conf.cdncss[el.dataset.name] = el.href;
+				Load.set('css-src', el.href);
+			}
+			resolve();
+		});
+	},
+	load: async (name) => {
+		await CDN.init();
+		let conf = Config.get('load')
+		if (conf.cdndeps[name]) {
+			let list = conf.cdndeps[name].map(CDN.load)
+			await Promise.all(list)
 		}
-		
+		CDN.css(name)
+		await CDN.js(name)
 	},
 	js: async (name, src) => {
 		await CDN.init();
-		let cdns = Config.get('load').cdnjs;
+		let cdns = Config.get('load').cdnjs
 		if (cdns[name]) {
-			src = cdns[name];
+			src = cdns[name]
 		} else {
-			if (!src) return;
-			cdns[name] = src;
+			if (!src) return
+			cdns[name] = src
 		}
-		return Load.on('script-src', src);
+		return Load.on('script-src', src)
 	},
 	css: async (name, src) => {
-		await CDN.init();
-		let cdns = Config.get('load').cdncss;
-		
+		await CDN.init()
+		let cdns = Config.get('load').cdncss
 		if (cdns[name]) {
-			src = cdns[name];
+			src = cdns[name]
 		} else {
-			if (!src) return;
-			cdns[name] = src;
+			if (!src) return
+			cdns[name] = src
 		}
-		return Load.on('css-src', src);
+		return Load.on('css-src', src)
 	}
 }
 
