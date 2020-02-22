@@ -13,29 +13,32 @@ export let CDN = {
 	init: async () => {
 		CDN.init = () => { return CDN.init.promise };
 		return CDN.init.promise = new Promise(async (resolve) => {
-			let conf, list, i, l, el, name
+			let conf, list, i, l, el, name, src, href
 			list = document.getElementsByTagName('script');
 			for (i = 0, l = list.length; i < l; i++) {
 				el = list[i];
-				if (!el.src) continue;
-				Load.set('script-src', el.src);
+				src = el.getAttribute('src');
+				if (!src) continue;
+				Load.set('script-src', src);
 			}
 			await Load.on('script-src', '/-collect/?js')
 			conf = Config.get('load');
 			for (i = 0, l = list.length; i < l; i++) {
 				el = list[i];
-				if (!el.src) continue;
-				if (el.dataset.name) conf.cdnjs[el.dataset.name] = el.src;
+				src = el.getAttribute('src');
+				if (!src) continue;
+				if (el.dataset.name) conf.cdnjs[el.dataset.name] = src;
 			}
 
 
 			list = document.getElementsByTagName('link');
-			for (let i = 0, l = list.length; i < l; i++) {
+			for (i = 0, l = list.length; i < l; i++) {
 				el = list[i];
 				if (el.rel != 'stylesheet') continue;
-				if (!el.href) continue;
-				if (el.dataset.name) conf.cdncss[el.dataset.name] = el.href;
-				Load.set('css-src', el.href);
+				href = el.getAttribute('href');
+				if (!href) continue;
+				if (el.dataset.name) conf.cdncss[el.dataset.name] = href;
+				Load.set('css-src', href);
 			}
 			resolve();
 		});
