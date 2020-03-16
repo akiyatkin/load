@@ -7,10 +7,10 @@ export let Load = {
 }
 
 Fire.handler(Load, 'import', src => {
-	return Fire.on(Load, 'fetch-json', '-access').then( json => {
-		src += (~src.indexOf('?')? '&' : '?') + 't=' + json.update
+	//return Fire.on(Load, 'fetch-json', '-access').then( json => {
+	//	src += (~src.indexOf('?')? '&' : '?') + 't=' + json.update
 		return import(src)
-	});
+	//});
 });
 
 Fire.handler(Load, 'import-default', src => {
@@ -21,8 +21,5 @@ Fire.handler(Load, 'import-default', src => {
 Fire.handler(Load, 'fetch-json', src => {
 	return fetch('/' + src).then( res => res.json())
 });
-
-
-
 
 export default Load;

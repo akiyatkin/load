@@ -2,13 +2,13 @@ export let Fire = {
 	classes: {
 
 	},
-	init: (cls, name) => {
+	init: (cls, name) => {  // Контекст события {res:, list: } в res хранятся все результаты
 		if (!cls.__events) cls.__events = [];
 		if (!cls.__events[name]) cls.__events[name] = {res: new Map, list: []};
 		return cls.__events[name];
 	},
-	arg: (cls, name, obj) => {
-		var context = Fire.init(cls, name);		
+	arg: (cls, name, obj) => { // Контекст конкретной подписки {res:, executed: } в res все обработанные результаты
+		var context = Fire.init(cls, name);
 		var arg = context.res.get(obj);
 		if (!arg) context.res.set(obj, arg = {});
 		return arg;
@@ -46,8 +46,12 @@ export let Fire = {
 	handler: (cls, name, callback) => {
 		var context = Fire.init(cls, name);
 		context.list.push(callback);
-		context.res.forEach(arg => {
-			if (arg.executed && arg.res == null) callback(context.obj).then( res => context.res = res);	
+		context.res.forEach((arg, obj) => { //Запускаем callback для всех прошлых событий
+			if (arg.executed && arg.res == null) { //Проверка что событие реально выполнено и не null? Потому что иначе всё остановилось на прошлом подписчике
+				let r = callback(obj)
+				if (r && r.then) r.then( res => arg.res = res)
+				else arg.res = r
+			}
 		});
 	},
 	tik: (cls, name, obj) => {

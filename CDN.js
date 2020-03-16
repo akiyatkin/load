@@ -1,4 +1,4 @@
-import Load from './Load.js';
+import Load from './Load.js'
 export let CDN = {
 	wait: () => {
 		if (CDN.wait.promise) return Wait.promise;
@@ -78,7 +78,7 @@ export let CDN = {
 }
 
 Load.handler('script-src', src => {
-	return new Promise((resolve)=>{
+	return new Promise((resolve) => {
 		let s = document.createElement("script");
 	    s.type = "text/javascript";
 	    s.async = true;
@@ -88,21 +88,20 @@ Load.handler('script-src', src => {
 	    }
 	    s.src = src;
 	    document.getElementsByTagName('head')[0].appendChild(s);
-	    /*let scripts = document.getElementsByTagName("script");
-	    let n = scripts[scripts.length-1];//Нашли послений скрипт
-	    n.parentNode.appendChild(s, n);*/
+	    //let scripts = document.getElementsByTagName("script");
+	    //let n = scripts[scripts.length-1];//Нашли послений скрипт
+	    //n.parentNode.appendChild(s, n);
 	});
 	
 });
 
-
-Load.handler('css-src', src => {	
+Load.handler('css-src', src => {
+	
     let link  = document.createElement('link');
     link.rel  = 'stylesheet';
     link.type = 'text/css';
     link.href = src;
-
+	
     document.getElementsByTagName('head')[0].appendChild(link);
 });
-
-export default CDN;
+export default CDN
