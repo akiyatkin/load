@@ -19,9 +19,9 @@ export let CDN = {
 				el = list[i];
 				src = el.getAttribute('src');
 				if (!src) continue;
-				Load.set('script-src', src);
+				Load.set('script', src);
 			}
-			await Load.on('script-src', '/-collect/?js')
+			await Load.on('script', '/-collect/?js')
 			conf = Config.get('load');
 			for (i = 0, l = list.length; i < l; i++) {
 				el = list[i];
@@ -38,7 +38,7 @@ export let CDN = {
 				href = el.getAttribute('href');
 				if (!href) continue;
 				if (el.dataset.name) conf.cdncss[el.dataset.name] = href;
-				Load.set('css-src', href);
+				Load.set('css', href);
 			}
 			resolve();
 		});
@@ -62,7 +62,7 @@ export let CDN = {
 			if (!src) return
 			cdns[name] = src
 		}
-		return Load.on('script-src', src)
+		return Load.on('script', src)
 	},
 	css: async (name, src) => {
 		await CDN.init()
@@ -73,35 +73,9 @@ export let CDN = {
 			if (!src) return
 			cdns[name] = src
 		}
-		return Load.on('css-src', src)
+		return Load.on('css', src)
 	}
 }
 
-Load.handler('script-src', src => {
-	return new Promise((resolve) => {
-		let s = document.createElement("script");
-	    s.type = "text/javascript";
-	    s.async = true;
-	    s.defer = true;
-	    s.onload = function () {
-	    	resolve();
-	    }
-	    s.src = src;
-	    document.getElementsByTagName('head')[0].appendChild(s);
-	    //let scripts = document.getElementsByTagName("script");
-	    //let n = scripts[scripts.length-1];//Нашли послений скрипт
-	    //n.parentNode.appendChild(s, n);
-	});
-	
-});
 
-Load.handler('css-src', src => {
-	
-    let link  = document.createElement('link');
-    link.rel  = 'stylesheet';
-    link.type = 'text/css';
-    link.href = src;
-	
-    document.getElementsByTagName('head')[0].appendChild(link);
-});
 export default CDN

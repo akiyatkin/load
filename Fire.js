@@ -43,7 +43,7 @@ export let Fire = {
 		});
 		return arg.promise = promise;
 	},
-	handler: (cls, name, callback) => {
+	hand: (cls, name, callback) => {
 		var context = Fire.init(cls, name);
 		context.list.push(callback);
 		context.res.forEach((arg, obj) => { //Запускаем callback для всех прошлых событий
@@ -61,5 +61,4 @@ export let Fire = {
 		delete arg.promise;
 	}
 }
-
 export default Fire;
