@@ -20,18 +20,18 @@ let paramBuild = (s, prefix, obj) => {
 	if (obj && obj.constructor == Array) {
 		obj.forEach( (v, i) => {
 			if (/\[\]$/.test(prefix)) {
-				Load.paramAdd(s, prefix, v)
+				paramAdd(s, prefix, v)
 			} else {
-				Load.paramBuild(s, prefix + "[" + ( typeof v === "object" && v != null ? i : "" ) + "]", v)
+				paramBuild(s, prefix + "[" + ( typeof v === "object" && v != null ? i : "" ) + "]", v)
 			}
 		})
 	} else if (obj && typeof obj === "object") {
 		for (let name in obj) {
-			Load.paramBuild(s, prefix + "[" + name + "]", obj[ name ])
+			paramBuild(s, prefix + "[" + name + "]", obj[ name ])
 		}
 
 	} else {
-		Load.paramAdd(s, prefix, obj)
+		paramAdd(s, prefix, obj)
 	}
 }
 
