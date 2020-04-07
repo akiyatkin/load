@@ -18,6 +18,9 @@ export let Fire = {
 		arg.executed = true;
 		arg.res = res;
 	},
+	fire: (cls, name, obj) => {
+		return Fire.on(cls, name, obj).then(() => Fire.tik(cls, name, obj))
+	},
 	on: (cls, name, obj) => {
 		var context = Fire.init(cls, name);
 		
@@ -27,6 +30,7 @@ export let Fire = {
 
 		if (arg.promise) return arg.promise;
 
+		//Последовательное выплнение подписчиков
 		let i = 0;
 		let promise = (async function test(res) {
 			if (res != null) return res;
