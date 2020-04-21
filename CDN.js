@@ -1,4 +1,5 @@
 import Load from './Load.js'
+import Wait from './Wait.js'
 export let CDN = {
 	wait: () => {
 		if (CDN.wait.promise) return Wait.promise;
@@ -10,9 +11,10 @@ export let CDN = {
 			}
 		})
 	},
-	init: async () => {
+	init: () => {
 		CDN.init = () => { return CDN.init.promise };
 		return CDN.init.promise = new Promise(async (resolve) => {
+			await Wait()
 			let conf, list, i, l, el, name, src, href
 			list = document.getElementsByTagName('script');
 			for (i = 0, l = list.length; i < l; i++) {
