@@ -1,6 +1,6 @@
 import Load from './Load.js'
 import Wait from './Wait.js'
-export let CDN = {
+let CDN = {
 	wait: () => {
 		if (CDN.wait.promise) return Wait.promise;
 		return CDN.wait.promise = new Promise((resolve) => {
@@ -79,5 +79,5 @@ export let CDN = {
 	}
 }
 
-
+export {CDN};
 export default CDN

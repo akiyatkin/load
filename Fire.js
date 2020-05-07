@@ -58,6 +58,10 @@ let Fire = {
 			}
 		});
 	},
+	tikon:  (cls, name, obj) => {
+		Fire.tik(cls, name, obj)
+		return Fire.on(cls, name, obj)
+	},
 	tik: (cls, name, obj) => {
 		let arg = Fire.arg(cls, name, obj)
 		arg.executed = false
