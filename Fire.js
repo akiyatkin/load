@@ -1,4 +1,4 @@
-export let Fire = {
+let Fire = {
 	classes: {
 
 	},
@@ -59,10 +59,11 @@ export let Fire = {
 		});
 	},
 	tik: (cls, name, obj) => {
-		let arg = Fire.arg(cls, name, obj);
-		arg.executed = false;
-		delete arg.res;
-		delete arg.promise;
+		let arg = Fire.arg(cls, name, obj)
+		arg.executed = false
+		delete arg.res
+		delete arg.promise
 	}
 }
-export default Fire;
+export {Fire}
+export default Fire
