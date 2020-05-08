@@ -1,6 +1,5 @@
 import Fire from './Fire.js'
-export {Fire}
-export let Load = {
+let Load = {
 	on: (name, arg) => Fire.on(Load, name, arg),
 	hand: (name, func) => Fire.hand(Load, name, func),
 	set: (name, arg, val) => Fire.set(Load, name, arg, val),
@@ -38,6 +37,7 @@ let paramBuild = (s, prefix, obj) => {
 
 
 Load.hand('json', src => {
+	//Нужен из-за кэша, так как fetch будет каждый раз новый запрос отправлять
 	return fetch('/' + src).then( res => res.json())
 });
 
@@ -61,10 +61,10 @@ Load.hand('css', src => {
     link.rel  = 'stylesheet'
     link.type = 'text/css'
     link.href = src
-
     document.getElementsByTagName('head')[0].appendChild(link)
 });
 
 
 
 export default Load
+export {Load}

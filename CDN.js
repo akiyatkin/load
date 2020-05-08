@@ -1,5 +1,6 @@
-import Load from './Load.js'
-import Wait from './Wait.js'
+import {Load} from './Load.js'
+import {Wait} from './Wait.js'
+import {Config} from '/vendor/infrajs/config/Config.js'
 let CDN = {
 	wait: () => {
 		if (CDN.wait.promise) return Wait.promise;
@@ -79,5 +80,5 @@ let CDN = {
 	}
 }
 
-export {CDN};
+export {CDN}
 export default CDN
