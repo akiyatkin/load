@@ -24,7 +24,7 @@ let CDN = {
 				if (!src) continue;
 				Load.set('script', src);
 			}
-			await Load.on('script', '/-collect/?js')
+			await Load.on('script', '/-collect/js')
 			conf = Config.get('load');
 			for (i = 0, l = list.length; i < l; i++) {
 				el = list[i];
