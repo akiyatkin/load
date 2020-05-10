@@ -1,6 +1,6 @@
-import {Load} from './Load.js'
-import {Wait} from './Wait.js'
-import {Config} from '/vendor/infrajs/config/Config.js'
+import { Load } from './Load.js'
+import { DOM } from '/vendor/akiyatkin/load/DOM.js'
+import { Config } from '/vendor/infrajs/config/Config.js'
 let CDN = {
 	wait: () => {
 		if (CDN.wait.promise) return Wait.promise;
@@ -15,24 +15,17 @@ let CDN = {
 	init: () => {
 		CDN.init = () => { return CDN.init.promise };
 		return CDN.init.promise = new Promise(async (resolve) => {
-			await Wait()
+			await DOM()
 			let conf, list, i, l, el, name, src, href
 			list = document.getElementsByTagName('script');
-			for (i = 0, l = list.length; i < l; i++) {
-				el = list[i];
-				src = el.getAttribute('src');
-				if (!src) continue;
-				Load.set('script', src);
-			}
-			await Load.on('script', '/-collect/js')
 			conf = Config.get('load');
 			for (i = 0, l = list.length; i < l; i++) {
 				el = list[i];
 				src = el.getAttribute('src');
 				if (!src) continue;
+				Load.set('script', src);
 				if (el.dataset.name) conf.cdnjs[el.dataset.name] = src;
 			}
-
 
 			list = document.getElementsByTagName('link');
 			for (i = 0, l = list.length; i < l; i++) {
@@ -80,5 +73,5 @@ let CDN = {
 	}
 }
 
-export {CDN}
+export { CDN }
 export default CDN

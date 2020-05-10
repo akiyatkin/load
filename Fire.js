@@ -59,7 +59,7 @@ let Fire = {
 
 		return event.promise;
 	},
-	get: (cls, name, obj) => {
+	wait: (cls, name, obj) => {
 		var context = Fire.context(cls, name);
 		var event = context.res.get(obj);
 		if (!event) {
