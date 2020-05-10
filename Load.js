@@ -49,8 +49,7 @@ Load.hand('script', src => {
 	    s.async = true
 	    s.defer = true
 	    s.onload = resolve
-	    s.src = src
-
+		s.src = src
 	    document.getElementsByTagName('head')[0].appendChild(s)
 	});
 });
