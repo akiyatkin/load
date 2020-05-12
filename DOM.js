@@ -1,10 +1,8 @@
 import { Fire } from '/vendor/akiyatkin/load/Fire.js'
 let DOM = {
-	on: (...params) => Fire.on(DOM, ...params),
 	ok: (...params) => Fire.ok(DOM, ...params),
-	tikon: (...params) => Fire.tikon(DOM, ...params),
+	race: (...params) => Fire.race(DOM, ...params),
 	tikok: (...params) => Fire.tikok(DOM, ...params),
-	hand: (...params) => Fire.hand(DOM, ...params),
 	wait: (...params) => Fire.wait(DOM, ...params)
 }
 
