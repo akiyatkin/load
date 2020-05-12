@@ -15,7 +15,7 @@ let CDN = {
 	init: () => {
 		CDN.init = () => { return CDN.init.promise };
 		return CDN.init.promise = new Promise(async (resolve) => {
-			await DOM()
+			await DOM.wait('show')
 			let conf, list, i, l, el, name, src, href
 			list = document.getElementsByTagName('script');
 			conf = Config.get('load');
@@ -50,6 +50,7 @@ let CDN = {
 		await CDN.js(name)
 	},
 	js: async (name, src) => {
+		
 		await CDN.init();
 		let cdns = Config.get('load').cdnjs
 		if (cdns[name]) {
