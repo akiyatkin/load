@@ -35,7 +35,10 @@ let paramBuild = (s, prefix, obj) => {
 }
 
 
-
+Load.hand('text', src => {
+	//Нужен из-за кэша, так как fetch будет каждый раз новый запрос отправлять
+	return fetch('/' + src).then( res => res.text())
+});
 Load.hand('json', src => {
 	//Нужен из-за кэша, так как fetch будет каждый раз новый запрос отправлять
 	return fetch('/' + src).then( res => res.json())
