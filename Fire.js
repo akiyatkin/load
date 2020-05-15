@@ -95,6 +95,12 @@ let Fire = {
 		event.resolve()
 		return event.promise;
 	},
+	get: (cls, name, obj = null) => {
+		//wait только на конкретный объект
+		var context = Fire.context(cls, name)
+		let event = Fire.event(context, obj)
+		return event.promise
+	},
 	wait: (cls, name, obj = null) => {
 		//wait только на конкретный объект
 		var context = Fire.context(cls, name)

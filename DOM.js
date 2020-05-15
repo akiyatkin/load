@@ -9,10 +9,10 @@ let DOM = {
 if (~['loading'].indexOf(document.readyState)) {
 	//ждём interactive
 	document.addEventListener("DOMContentLoaded", async () => {
-		DOM.ok('show')
+		DOM.ok('load')
 	})
 } else {
-	DOM.ok('show')
+	DOM.ok('load')
 }
 
 

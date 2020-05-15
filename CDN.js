@@ -1,8 +1,14 @@
 import { Load } from './Load.js'
 import { DOM } from '/vendor/akiyatkin/load/DOM.js'
 import { Config } from '/vendor/infrajs/config/Config.js'
+import { Fire } from '/vendor/akiyatkin/load/Fire.js'
 let CDN = {
-	wait: () => {
+	ok: (...params) => Fire.ok(CDN, ...params),
+	hand: (...params) => Fire.hand(CDN, ...params),
+	race: (...params) => Fire.race(CDN, ...params),
+	tikok: (...params) => Fire.tikok(CDN, ...params),
+	wait: (...params) => Fire.wait(CDN, ...params),
+	/*wait: () => {
 		if (CDN.wait.promise) return Wait.promise;
 		return CDN.wait.promise = new Promise((resolve) => {
 			if (document.readyState == 'loading') {
@@ -11,11 +17,11 @@ let CDN = {
 				resolve()
 			}
 		})
-	},
+	},*/
 	init: () => {
 		CDN.init = () => { return CDN.init.promise };
 		return CDN.init.promise = new Promise(async (resolve) => {
-			await DOM.wait('show')
+			await DOM.wait('load')
 			let conf, list, i, l, el, name, src, href
 			list = document.getElementsByTagName('script');
 			conf = Config.get('load');
@@ -73,6 +79,17 @@ let CDN = {
 		return Load.on('css', src)
 	}
 }
+
+CDN.hand('load', async name => {
+	await CDN.init();
+	let conf = Config.get('load')
+	if (conf.cdndeps[name]) {
+		let list = conf.cdndeps[name].map(name => CDN.hand('load', name) )
+		await Promise.all(list)
+	}
+	CDN.css(name)
+	await CDN.js(name)
+})
 
 export { CDN }
 export default CDN
