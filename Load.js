@@ -1,8 +1,6 @@
 import Fire from './Fire.js'
 let Load = {
-	on: (name, arg) => Fire.on(Load, name, arg),
-	hand: (name, func) => Fire.hand(Load, name, func),
-	set: (name, arg, val) => Fire.set(Load, name, arg, val),
+	...Fire,
 	param: (a) => {
 		let s = []
 		for (let prefix in a) {
@@ -58,7 +56,6 @@ Load.hand('script', src => {
 });
 
 Load.hand('css', src => {
-
     let link  = document.createElement('link')
     link.rel  = 'stylesheet'
     link.type = 'text/css'
