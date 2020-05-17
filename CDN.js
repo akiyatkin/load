@@ -4,10 +4,8 @@ import { Config } from '/vendor/infrajs/config/Config.js'
 import { Fire } from '/vendor/akiyatkin/load/Fire.js'
 let CDN = {
 	...Fire,
-	load: name => CDN.on('load', name),
-	init: name => CDN.on('init'),
 	js: async (name, src) => {
-		await CDN.init()
+		await CDN.on('init')
 		let cdns = Config.get('load').cdnjs
 		if (cdns[name]) {
 			src = cdns[name]
@@ -18,7 +16,7 @@ let CDN = {
 		return Load.on('script', src)
 	},
 	css: async (name, src) => {
-		await CDN.init()
+		await CDN.on('init')
 		let cdns = Config.get('load').cdncss
 		if (cdns[name]) {
 			src = cdns[name]
@@ -30,8 +28,9 @@ let CDN = {
 	}
 }
 
+//Событие, чтобы не запускаться несколько раз при повторных вызовах
 CDN.hand('load', async name => {
-	await CDN.init()
+	await CDN.on('init')
 	let conf = Config.get('load')
 	if (conf.cdndeps[name]) {
 		let list = conf.cdndeps[name].map(name => CDN.on('load', name) )
