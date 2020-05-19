@@ -1,5 +1,4 @@
 import { Load } from './Load.js'
-import { DOM } from '/vendor/akiyatkin/load/DOM.js'
 import { Config } from '/vendor/infrajs/config/Config.js'
 import { Fire } from '/vendor/akiyatkin/load/Fire.js'
 let CDN = {
@@ -42,7 +41,6 @@ CDN.hand('load', async name => {
 
 
 CDN.hand('init', async () => {
-	await DOM.wait('load')
 	let conf, list, i, l, el, name, src, href
 	list = document.getElementsByTagName('script');
 	conf = Config.get('load');
@@ -50,7 +48,7 @@ CDN.hand('init', async () => {
 		el = list[i];
 		src = el.getAttribute('src');
 		if (!src) continue;
-		await Load.onset('script', src);
+		await Load.achieve('script', src);
 		if (el.dataset.name) conf.cdnjs[el.dataset.name] = src;
 	}
 
@@ -61,7 +59,7 @@ CDN.hand('init', async () => {
 		href = el.getAttribute('href');
 		if (!href) continue;
 		if (el.dataset.name) conf.cdncss[el.dataset.name] = href;
-		await Load.onset('css', href);
+		await Load.achieve('css', href);
 	}
 })
 

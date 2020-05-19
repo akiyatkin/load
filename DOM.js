@@ -2,7 +2,7 @@ import { Fire } from '/vendor/akiyatkin/load/Fire.js'
 
 let DOM = { ...Fire }
 
-DOM.hand('load', () => {
+DOM.before('load', href => {
 	return new Promise(resolve => {
 		if (~['loading'].indexOf(document.readyState)) {
 			//ждём interactive
@@ -15,7 +15,6 @@ DOM.hand('load', () => {
 	})
 })
 
-DOM.on('load')
-
+DOM.on('load', location.pathname + location.search) //"/vendor/akiyatkin/load/test.html?t=1589525936"
 
 export { DOM };

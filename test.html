@@ -1,0 +1,67 @@
+<link data-name="bootstrap" rel="stylesheet" href="//bootswatch.com/4/cosmo/bootstrap.min.css">
+<script type="module">
+    import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+	//import { CDN } from '/vendor/akiyatkin/load/CDN.js'
+	//import { DOM } from '/vendor/akiyatkin/load/DOM.js'
+
+	let Test = {
+		...Fire
+	}
+	window.Test = Test
+	;(async () => {
+		//await CDN.on('init')
+		//await DOM.wait('load')
+		
+
+		Test.race('show', () => {
+			console.log('race')
+		})
+		Test.before('show', () => {
+		 	console.log('before')
+		})
+		Test.hand('show', async () => {
+			console.log('hand')
+		})
+		Test.after('show', () => {
+		 	console.log('after')
+		})
+		Test.done('show', () => {
+		 	console.log('done')
+		})
+		//Test.fire('show');
+		//Test.emit('show');
+		Test.ok('show');
+
+		//await Test.tik('show');
+	
+		//Test.on('show')
+		
+	})();
+	
+	(async ()=> {
+		return
+		let test = 1;
+
+		(async ()=> {
+			if (test != 1) return
+			Promise.resolve().then( () => {
+				//if (test != 1) return
+				console.log(test)
+			})
+		})();
+			
+		(async ()=> {
+			test = 2
+		})();
+			
+
+	})();
+</script>
+<div class="d-flex border" style="overflow:hidden">
+    <div id="tadam" class="border w-50">
+        asdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfa
+    </div>
+    <div class="border" style="margin-left:-500px; margin-right:-300px">
+        asdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfa
+    </div>
+</div>

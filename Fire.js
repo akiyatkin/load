@@ -1,30 +1,3 @@
-/*
-
-null-promise выставляет любой obj резольва имеющийся и выставляя свой
-
-fire
-
-hand
-
-__fire = {
-	context = show: {
-		hand: [callback]
-		res: Map[
-			event = layer: {
-				end: true
-				resolve: native
-				promise: Promise
-				start: true
-			},
-			event = null: {
-				...
-			}
-		]
-		
-	}
-}
-
-*/
 
 let train = (list, obj, callback, i = 0, res) => {
 	if (res != null) return callback(res) //Выход по требованию обработчика
@@ -47,7 +20,8 @@ class Event {
 			}
 		})
 	}
-	tik() {
+	drop() {
+		if (!this.start) return
 		this.promise = this.createPromise()
 		delete this.end
 		delete this.start
@@ -75,12 +49,12 @@ let ready = (event, cb) => {
 let step = (event, callback) => {
 	return new Promise(resolve => {
 		if (!event.start) {
-			callback()
-			resolve()
+			let r = callback()
+			resolve(r)
 		} else {
 			ready(event, () => {
-				callback()
-				resolve()
+				let r = callback()
+				resolve(r)
 			})
 		}
 	})
@@ -99,16 +73,18 @@ let getContext = (that, name) => {  // Контекст события {res:, : 
 	}
 	return that.__fire[name] = context
 }
-
-let Fire = {
-	tik: function(name, obj) {
-		let context = getContext(this, name)
-		let event = getEvent(context, obj)
-		return step(event, () => {
-			event.tik() 
+let all = function (res, callback) {
+	for (let [obj, event] of res) {
+		if (!event.start) continue // не выполняется
+		if (event.end) continue // выполнилось
+		//Тут только то что в процессе
+		return event.promise.then(()=>{
+			return all(res, callback)
 		})
-	},
-
+	}
+	if (callback) callback()
+}
+let Fire = {
 	on: function (name, obj) {
 		let context = getContext(this, name)
 		let event = getEvent(context, obj)
@@ -127,13 +103,41 @@ let Fire = {
 
 		return event.promise;
 	},
-
-	onset: async function (name, obj, res) {
-		await this.tik(name, obj)
+	ok: function(name, obj) {
+		let context = getContext(this, name)
+		let event = getEvent(context, obj)
+		return step(event, () => {
+			event.drop() 
+			return this.on(name, obj)
+		})
+	},
+	is: function(name, obj) {
+		return this.on(name, obj)
+	},
+	reset: function (name) {
+		let context = getContext(this, name)
+		return all(context.res, ()=> {
+			for (let [obj, event] of context.res) {
+				event.drop()
+			}
+		})
+	},
+	any: function (name) {
+		let context = getContext(this, name)
+		return all(context.res)
+	},
+	drop: async function (name, obj) {
 		let context = getContext(this, name)	
 		let event = getEvent(context, obj)
 		return step(event, () => {
-			event.tik()
+			event.drop()
+		})
+	},
+	achieve: async function (name, obj, res) {
+		let context = getContext(this, name)	
+		let event = getEvent(context, obj)
+		return step(event, () => {
+			event.drop()
 			event.start = true
 			context.race.map(callback => callback(obj))
 			event.resolve(res)
@@ -168,7 +172,7 @@ let Fire = {
 			let res = event.result //Уже выполнено. Важно знать как это выполнение остановилось
 			if (res != null) continue //Оборавалось раньше, не выполняем. Какой-то подписчик вернул для этого obj что-то
 			
-			event.tik()
+			event.drop()
 			event.start = true
 			let lengthafter = context.after.length
 			let lengthdone = context.done.length
@@ -189,7 +193,7 @@ let Fire = {
 		for (let [obj, event] of context.res) {
 			if (!event.end) continue
 			let result = event.result
-			event.tik()
+			event.drop()
 			event.start = true
 
 			let lengthdone = context.done.length
@@ -214,17 +218,6 @@ let Fire = {
 		let context = getContext(this, name)
 		let event = getEvent(context, obj)
 		return event.promise
-	},
-
-	
-	
-	tikon: async function(name, obj) {
-		await this.tik(name, obj)
-		return this.on(name, obj)
-	},
-	ontik: async function(name, obj) {
-		await this.on(name, obj)
-		return this.tik(name, obj)
 	}
 }
 
