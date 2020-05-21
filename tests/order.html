@@ -1,40 +1,36 @@
 <link data-name="bootstrap" rel="stylesheet" href="//bootswatch.com/4/cosmo/bootstrap.min.css">
 <script type="module">
     import { Fire } from '/vendor/akiyatkin/load/Fire.js'
-	//import { CDN } from '/vendor/akiyatkin/load/CDN.js'
-	//import { DOM } from '/vendor/akiyatkin/load/DOM.js'
 
-	let Test = {
-		...Fire
-	}
+	let Test = { ...Fire }
 	window.Test = Test
 	;(async () => {
-		//await CDN.on('init')
-		//await DOM.wait('load')
-		
-
-		Test.race('show', () => {
-			console.log('race')
+		Test.once('show', () => {
+			console.log('ONCE')
+		}).then(()=>{
+			console.log('AFTER')
 		})
+		
+		Test.done('show', () => {
+		 	console.log('done')
+		})
+		
 		Test.before('show', () => {
 		 	console.log('before')
 		})
-		Test.hand('show', async () => {
+		Test.hand('show', () => {
 			console.log('hand')
 		})
 		Test.after('show', () => {
 		 	console.log('after')
 		})
-		Test.done('show', () => {
-		 	console.log('done')
+		Test.race('show', () => {
+			console.log('race')
 		})
-		//Test.fire('show');
-		//Test.emit('show');
-		Test.ok('show');
+		
 
-		//await Test.tik('show');
-	
-		//Test.on('show')
+		Test.fire('show',1);
+		Test.fire('show',2);
 		
 	})();
 	
@@ -57,6 +53,20 @@
 
 	})();
 </script>
+<pre>
+ONCE
+race
+before
+hand
+after
+done
+race
+before
+hand
+after
+done
+AFTER
+</pre>
 <div class="d-flex border" style="overflow:hidden">
     <div id="tadam" class="border w-50">
         asdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfa

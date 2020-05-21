@@ -1,0 +1,27 @@
+<link data-name="bootstrap" rel="stylesheet" href="//bootswatch.com/4/cosmo/bootstrap.min.css">
+<script type="module">
+    import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+
+	let Test = { ...Fire }
+	window.Test = Test
+
+	;(async () => {
+		
+		Test.done('show', () => {
+		 	console.log('done')
+		})
+
+		Test.on('show',1);
+
+		Test.hand('show', () => {
+		 	console.log('hand')
+		})
+
+		
+	})();
+	
+</script>
+<pre>
+hand
+done
+</pre>

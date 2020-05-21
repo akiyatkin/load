@@ -1,0 +1,43 @@
+
+<script type="module">
+    import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+
+	let One = { ...Fire }
+	window.One = One
+
+
+	
+	One.emit('check')
+
+	One.once('check', () => {
+		return new Promise(resolve => {
+			setTimeout(()=>{
+				console.log(1)
+				resolve()
+			})
+		},100)
+	});
+
+	One.done('check', async () => {
+		console.log(2)
+	});
+	
+	
+	
+	//One.emit('check')
+	//Two.emit('check')
+
+	// One.done('check', async () => {
+	// 	await Two.fire('check')
+	// })
+	// Two.once('check', async () => {
+	// 	await One.fire('check')
+	// })
+
+	
+	
+</script>
+<pre>
+1
+2
+</pre>
