@@ -1,7 +1,6 @@
 import { Fire } from '/vendor/akiyatkin/load/Fire.js'
-
-
 let Controller
+
 let DOM = { ...Fire }
 
 DOM.fire('load')
