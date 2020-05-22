@@ -146,7 +146,7 @@ let Fire = {
 		Promise.resolve().then(() => {	
 			event.startpromise = true
 			let list = context.once.map(callback => callback())
-			context.once.length = 0
+			context.once = list.map(result => () => { return result }) //заменили функции результатом
 			testall(list, () => {
 				context.race.map(callback => callback(obj))
 				testall(context.before.map(callback => callback(obj)), () => {
@@ -307,6 +307,11 @@ let Fire = {
 		}
 		//промис контекста замедляет все события
 		context.once.push(callback)
+		context.promise.then(() => {
+			context.all( () => {
+				context.once = []
+			})
+		})
 		return context.promise
 	},
 	wait (name, obj) {
