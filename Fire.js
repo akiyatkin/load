@@ -297,6 +297,7 @@ let Fire = {
 	},
 	once (name, callback) {
 		let context = getContext(this, name)
+		if (!callback) return context.promise
 		for (let [obj, event] of context.res) {//callback запускается раньше всех, до before c ожиданием. Промис вместе с результатом
 			if (event.start) {
 				let oneres = callback()
