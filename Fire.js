@@ -30,8 +30,8 @@ class Context {
 
 		if (callback) return callback()
 	}
-	checkonce (callback) {
-		let list = this.once.map(callback => callback())
+	checkonce (obj, callback) {
+		let list = this.once.map(callback => callback(obj))
 		this.once = list.map(result => () => { return result }) //заменили функции результатом
 		testall(list, () => {
 			callback()
@@ -55,8 +55,7 @@ class Event {
 			this.resolve = (result) => {
 				this.end = true
 				this.result = result
-
-				this.context.resolve(result)
+				this.context.resolve(this)
 				resolve(result)
 			}
 		})
@@ -154,7 +153,7 @@ let Fire = {
 		setTimeout( () => { 
 		//timeout откладыает выполнение через все <script> вставленные в документ и гарантирует все подписки
 			event.startpromise = true
-			context.checkonce(() => {
+			context.checkonce(obj, () => {
 				context.race.map(callback => callback(obj))
 				testall(context.before.map(callback => callback(obj)), () => {
 					train(context.hand, obj, res => {
@@ -306,14 +305,14 @@ let Fire = {
 		if (!callback) return context.promise
 		for (let [obj, event] of context.res) {//callback запускается раньше всех, до before c ожиданием. Промис вместе с результатом
 			if (event.start) {
-				let oneres = callback()
+				let oneres = callback(event.obj)
 				callback = () => oneres //Мы не знаем запущены ли once или нет сейчас, так как события генерируются с паузой
 				break
 			}
 		}
 		//промис контекста замедляет все события
 		context.once.push(callback)
-		context.promise.then(() => {
+		context.promise.then(event => {
 			context.all( () => {
 				context.once = []
 			})
@@ -323,22 +322,22 @@ let Fire = {
 	wait (name, obj, callback) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
+
 		if (callback) {
 			if (event.end) {
 				callback(event.result)
 			} else {
-				let wait = promise => {
-					return promise.then( event =>{
-						if (event.obj !== obj) {
-							return wait(promise)
-						}
-
-						return callback(event.result)
+				let wait = () => {
+					this.once(name, o => {
+						if (o !== obj) context.promise.then(wait) //не задержиаем
+						else return callback() //задерживаем
 					})
 				}
-				context.promise = wait(context.promise)
+				wait()
 			}
 		}
+
+
 		return event.promise
 		
 	}
