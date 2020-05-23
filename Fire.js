@@ -168,7 +168,7 @@ let Fire = {
 		}, 1)
 		return event.promise
 	},
-	/*or (name, obj) {
+	elan (name, obj) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
 		return event.step(() => {
@@ -177,10 +177,10 @@ let Fire = {
 				for (let [obj, event] of context.res) {
 					event.drop()
 				}
-				return this.on(name, obj)
+				return this.fire(name, obj)
 			})
 		})
-	},*/
+	},
 	
 	/*is (name, obj) {
 		return this.on(name, obj)
@@ -320,10 +320,27 @@ let Fire = {
 		})
 		return context.promise
 	},
-	wait (name, obj) {
+	wait (name, obj, callback) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
+		if (callback) {
+			if (event.end) {
+				callback(event.result)
+			} else {
+				let wait = promise => {
+					return promise.then( event =>{
+						if (event.obj !== obj) {
+							return wait(promise)
+						}
+
+						return callback(event.result)
+					})
+				}
+				context.promise = wait(context.promise)
+			}
+		}
 		return event.promise
+		
 	}
 }
 
