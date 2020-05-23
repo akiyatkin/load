@@ -3,6 +3,7 @@ let Controller
 
 let DOM = { ...Fire }
 
+
 DOM.fire('load')
 
 

@@ -30,6 +30,13 @@ class Context {
 
 		if (callback) return callback()
 	}
+	checkonce (callback) {
+		let list = this.once.map(callback => callback())
+		this.once = list.map(result => () => { return result }) //заменили функции результатом
+		testall(list, () => {
+			callback()
+		})
+	}
 	getEvent (obj) {
 		let event = this.res.get(obj)
 		if (!event) this.res.set(obj, event = new Event(this, obj) )
@@ -143,11 +150,11 @@ let Fire = {
 		let event = context.getEvent(obj)
 		if (event.start) return event.promise
 		event.start = true
-		Promise.resolve().then(() => {	
+		
+		setTimeout( () => { 
+		//timeout откладыает выполнение через все <script> вставленные в документ и гарантирует все подписки
 			event.startpromise = true
-			let list = context.once.map(callback => callback())
-			context.once = list.map(result => () => { return result }) //заменили функции результатом
-			testall(list, () => {
+			context.checkonce(() => {
 				context.race.map(callback => callback(obj))
 				testall(context.before.map(callback => callback(obj)), () => {
 					train(context.hand, obj, res => {
@@ -158,8 +165,7 @@ let Fire = {
 					})
 				})
 			})
-		})
-
+		}, 1)
 		return event.promise
 	},
 	/*or (name, obj) {

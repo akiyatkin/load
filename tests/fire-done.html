@@ -1,0 +1,33 @@
+<link data-name="bootstrap" rel="stylesheet" href="//bootswatch.com/4/cosmo/bootstrap.min.css">
+<script type="module">
+    import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+	let One = { ...Fire }
+	window.One = One
+	console.log(1, 'fire load')
+	One.fire('load')
+	
+</script>
+
+<script type="module">
+	console.log(2, 'done load')
+	One.done('load', (obj) => {
+		console.log('done')
+	});
+</script>
+
+<script type="module">
+	console.log(3, 'once load')
+	One.once('load', async (obj) => {
+		console.log('once')
+		await Promise.resolve()
+		console.log('once end')
+	});
+</script>
+<pre>
+1 "fire load"
+2 "done load"
+3 "once load"
+once
+once end
+done
+</pre>
