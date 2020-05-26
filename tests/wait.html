@@ -7,28 +7,27 @@
 
 	;(async () => {
 		Test.once('show', event => {
-			console.log('once')
+			console.log(1, 'once')
 		})
 
-		Test.wait('show', 1, () => {
-		 	console.log('wait')
+		Test.wait('show', 1).then( () => {
+		 	console.log(5, 'wait')
 		})
 
 		Test.race('show', () => {
-		 	console.log('race')
+		 	console.log(2, 'race')
 		})		
 
 		Test.hand('show', () => {
-		 	console.log('hand')
+		 	console.log(3, 'hand')
 		})
-		Test.on('show',1);
+		console.log(0)
+		Test.fire('show',1);	
+		console.log(4)
 		
 	})();
 	
 </script>
 <pre>
-once
-wait
-race
-hand
+Счёт от 0 до 5
 </pre>

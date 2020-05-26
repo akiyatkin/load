@@ -62,5 +62,5 @@ CDN.hand('init', async () => {
 		await Load.achieve('css', href);
 	}
 })
-
+window.CDN = CDN
 export { CDN }

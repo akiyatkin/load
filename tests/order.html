@@ -5,67 +5,67 @@
 	let Test = { ...Fire }
 	window.Test = Test
 	;(async () => {
-		Test.once('show', () => {
-			console.log('ONCE')
-		}).then(()=>{
-			console.log('AFTER')
+		Test.once('show', r => {
+			console.log('ONCE', r)
+		}).then(r => {
+			console.log('AFTER', r)
 		})
 		
-		Test.done('show', () => {
-		 	console.log('done')
+		Test.done('show', r => {
+		 	console.log('done', r)
 		})
 		
-		Test.before('show', () => {
-		 	console.log('before')
+		Test.before('show', r => {
+		 	console.log('before', r)
 		})
-		Test.hand('show', () => {
-			console.log('hand')
+		Test.hand('show', r => {
+			console.log('hand', r)
 		})
-		Test.after('show', () => {
-		 	console.log('after')
+		Test.after('show', r => {
+		 	console.log('after', r)
 		})
-		Test.race('show', () => {
-			console.log('race')
+		Test.race('show', r => {
+			console.log('race', r)
 		})
-		
 
-		Test.fire('show',1);
+		Test.fire('show',1); //fire через setTimeout перепрыгивает через все прописы
+
 		Test.fire('show',2);
 		
 	})();
 	
-	(async ()=> {
-		return
-		let test = 1;
+	// (async ()=> {
+	// 	return
+	// 	let test = 1;
 
-		(async ()=> {
-			if (test != 1) return
-			Promise.resolve().then( () => {
-				//if (test != 1) return
-				console.log(test)
-			})
-		})();
+	// 	(async ()=> {
+	// 		if (test != 1) return
+	// 		Promise.resolve().then( () => {
+	// 			//if (test != 1) return
+	// 			console.log(test)
+	// 		})
+	// 	})();
 			
-		(async ()=> {
-			test = 2
-		})();
+	// 	(async ()=> {
+	// 		test = 2
+	// 	})();
 			
 
-	})();
+	// })();
 </script>
 <pre>
-ONCE
-race
-before
-hand
-after
-done
-race
-before
-hand
-after
-done
-AFTER
+ONCE undefined
+race 1
+before 1
+hand 1
+after 1
+done 1
+race 2
+before 2
+hand 2
+after 2
+done 2
+AFTER undefined
 </pre>
 <div class="d-flex border" style="overflow:hidden">
     <div id="tadam" class="border w-50">

@@ -15,7 +15,7 @@ class Context {
 	createPromise() {
 		return new Promise(resolve => this.resolve = (event) => {
 			this.promise = this.createPromise()
-			resolve(event)
+			resolve()
 		})
 	}
 	all (callback) {
@@ -30,9 +30,9 @@ class Context {
 
 		if (callback) return callback()
 	}
-	checkonce (obj, callback) {
-		let list = this.once.map(callback => callback(obj))
-		this.once = list.map(result => () => { return result }) //заменили функции результатом
+	checkonce (callback) {
+		let list = this.once.map(callback => callback())
+		this.once = list.map(result => { return () => result } ) //заменили функции результатом
 		testall(list, () => {
 			callback()
 		})
@@ -65,7 +65,7 @@ class Event {
 		this.promise = this.createPromise()
 		delete this.end
 		delete this.start
-		delete this.startpromise
+		//delete this.startpromise
 		delete this.result
 	}
 	ready (callback) {
@@ -107,12 +107,22 @@ let train = (list, obj, callback, i = 0, res) => {
 	if (r && r.then) return r.then(r => train(list, obj, callback, i, r))
 	return train(list, obj, callback, i, r)
 }
-let testall = (list, callback, i = 0) => {
-	if (list.length == i) return callback() //Обработчики закончились, 
-	let r = list[i++]
-	if (r && r.then) return r.then(r => testall(list, callback, i))
-	return testall(list, callback, i)
+let testall = (list, callback) => {
+	let promises = list.filter(res => !!res?.then)
+	if (promises.length) {
+		Promise.all(promises).then(()=>{
+			callback()
+		})
+	} else {
+		callback()
+	}
 }
+// let testall = (list, callback, i = 0) => {
+// 	if (list.length == i) return callback() //Обработчики закончились, 
+// 	let r = list[i++]
+// 	if (r && r.then) return r.then(r => testall(list, callback, i))
+// 	return testall(list, callback, i)
+// }
 
 let getContext = (that, name) => {  // Контекст события {res:, : } в res хранятся все результаты
 	if (!that.__fire) that.__fire = {}
@@ -144,16 +154,19 @@ let Fire = {
 			return this.fire(name, obj)
 		})
 	},
-	async fire (name, obj) {
+	fire (name, obj) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
 		if (event.start) return event.promise
 		event.start = true
+
+		//Невозможно гарантировать, чтобы генерация была всегда до подписки! 
+		//НО такая ситуация нужна для теста! Дело не в том что событие генерируется до подписки
 		
-		setTimeout( () => { 
+		//setTimeout( () => { 
 		//timeout откладыает выполнение через все <script> вставленные в документ и гарантирует все подписки
-			event.startpromise = true
-			context.checkonce(obj, () => {
+			//event.startpromise = true
+			context.checkonce(() => {
 				context.race.map(callback => callback(obj))
 				testall(context.before.map(callback => callback(obj)), () => {
 					train(context.hand, obj, res => {
@@ -164,7 +177,7 @@ let Fire = {
 					})
 				})
 			})
-		}, 1)
+		//}, 1)
 		return event.promise
 	},
 	elan (name, obj) {
@@ -217,7 +230,7 @@ let Fire = {
 		return event.step(() => {
 			event.drop()
 			event.start = true
-			event.startpromise = true
+			//event.startpromise = true
 			context.race.map(callback => callback(obj))
 			event.resolve(res)
 			context.done.map(callback => callback(obj, res))
@@ -229,7 +242,7 @@ let Fire = {
 		context.race.push(callback);
 		for (let [obj, event] of context.res) {
 			if (!event.start) continue
-			if (!event.startpromise) continue
+			//if (!event.startpromise) continue
 			callback(obj)
 		}
 		return context.promise
@@ -256,7 +269,7 @@ let Fire = {
 			
 			event.drop()
 			event.start = true
-			event.startpromise = true
+			//event.startpromise = true
 			let lengthafter = context.after.length
 			let lengthdone = context.done.length
 			train([callback], obj, result => {
@@ -279,7 +292,7 @@ let Fire = {
 			let result = event.result
 			event.drop()
 			event.start = true
-			event.startpromise = true
+			//event.startpromise = true
 			let lengthdone = context.done.length
 			train(context.after, obj, () => {
 				event.resolve(result)
@@ -294,10 +307,12 @@ let Fire = {
 	done (name, callback) {
 		let context = getContext(this, name)
 		context.done.push(callback);
-		for (let [obj, event] of context.res) {
-			if (!event.end) continue
-			callback(obj, event.result)
-		}
+		context.checkonce(() => {
+			for (let [obj, event] of context.res) {
+				if (!event.end) continue
+				callback(obj, event.result)
+			}
+		})
 		return context.promise
 	},
 	once (name, callback) {
@@ -311,33 +326,18 @@ let Fire = {
 			}
 		}
 		//промис контекста замедляет все события
+
 		context.once.push(callback)
-		context.promise.then(event => {
+		context.promise.then(() => {
 			context.all( () => {
 				context.once = []
 			})
 		})
 		return context.promise
 	},
-	wait (name, obj, callback) {
+	wait (name, obj) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
-
-		if (callback) {
-			if (event.end) {
-				callback(event.result)
-			} else {
-				let wait = () => {
-					this.once(name, o => {
-						if (o !== obj) context.promise.then(wait) //не задержиаем
-						else return callback() //задерживаем
-					})
-				}
-				wait()
-			}
-		}
-
-
 		return event.promise
 		
 	}

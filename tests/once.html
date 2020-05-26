@@ -7,37 +7,30 @@
 
 
 	
-	One.emit('check')
+	One.fire('check')
 
 	One.once('check', () => {
-		return new Promise(resolve => {
-			setTimeout(()=>{
-				console.log(1)
-				resolve()
+		console.log(1)
+	})
+	setTimeout(()=>{
+		One.once('check', () => {
+			return new Promise(resolve => {
+				setTimeout(()=>{
+					console.log(2)
+					resolve()
+				},100)
 			})
-		},100)
-	});
+		});
 
-	One.done('check', async () => {
-		console.log(2)
-	});
-	
-	
-	
-	//One.emit('check')
-	//Two.emit('check')
-
-	// One.done('check', async () => {
-	// 	await Two.fire('check')
-	// })
-	// Two.once('check', async () => {
-	// 	await One.fire('check')
-	// })
-
+		One.done('check', async () => {
+			console.log(3)
+		});
+	}, 100)
 	
 	
 </script>
 <pre>
 1
 2
+3
 </pre>
