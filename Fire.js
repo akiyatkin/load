@@ -1,13 +1,15 @@
 
 class Context {
-	res = new Map
-	once = [] //одноразоыве события замедляющее генерацию, перед race
-	race = [] //Запускаются первым без ожидания
-	before = []
-	hand = [] //Запускаются с ожиданием
-	after = []
-	done = []
+	
 	constructor(that, name) {
+		this.res = new Map
+		this.once = [] //одноразоыве события замедляющее генерацию, перед race
+		this.race = [] //Запускаются первым без ожидания
+		this.before = []
+		this.hand = [] //Запускаются с ожиданием
+		this.after = []
+		this.done = []
+
 		this.that = that
 		this.name = name
 		this.promise = this.createPromise()
