@@ -110,7 +110,7 @@ let train = (list, obj, callback, i = 0, res) => {
 	return train(list, obj, callback, i, r)
 }
 let testall = (list, callback) => {
-	let promises = list.filter(res => !!res?.then)
+	let promises = list.filter(res => res && res.then)
 	if (promises.length) {
 		Promise.all(promises).then(()=>{
 			callback()
