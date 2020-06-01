@@ -33,11 +33,16 @@ class Context {
 		if (callback) return callback()
 	}
 	checkonce (callback) {
-		let list = this.once.map(callback => callback())
-		this.once = list.map(result => { return () => result } ) //заменили функции результатом
-		testall(list, () => {
-			callback()
-		})
+		for (let [obj, event] of this.res) {
+			if (!event.start) continue
+			let list = this.once.map(callback => callback())
+			this.once = list.map(result => { return () => result } ) //заменили функции результатом
+			testall(list, () => {
+				callback()
+			})
+			break
+		}
+		
 	}
 	getEvent (obj) {
 		let event = this.res.get(obj)
@@ -183,6 +188,7 @@ let Fire = {
 		return event.promise
 	},
 	elan (name, obj) {
+		//fire и сбрасываются события для других объектов
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
 		return event.step(() => {

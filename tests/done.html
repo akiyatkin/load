@@ -6,20 +6,28 @@
 	window.Test = Test
 
 	;(async () => {
-		console.log(1, 'done')
-		Test.done('show', () => {
-		 	console.log(3, 'done')
+		
+		Test.once('show', function(){
+			console.log(3, 'once')
 		})
+
+		console.log(1, 'done')
+
+		Test.done('show', () => {
+		 	console.log(4, 'done')
+		})
+
 		console.log(2, 'done')
 		Test.on('show', 1);
-		console.log(4, 'done')
+
+		console.log(5, 'done')
 		Test.hand('show', () => {
-		 	console.log(5, 'hand')
+		 	console.log(6, 'hand')
 		})
-		console.log(6, 'done')
+		console.log(7, 'done')
 	})();
 	
 </script>
 <pre>
-Цифры по порядку до 6
+Цифры по порядку до 7
 </pre>
