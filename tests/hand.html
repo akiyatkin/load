@@ -1,37 +1,31 @@
 
 <script type="module">
-    import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+    //import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+    import { Fire } from '/vendor/akiyatkin/load/Elan.js'
 
 	let One = { ...Fire }
 	window.One = One
 	
-	One.fire('check', 1)
-	One.fire('check', 2)
+
+	One.fire('check', 3)
+	One.fire('check', 4)
 
 	One.once('check', async (obj) => {
+		console.log(1, 'once')
 		await Promise.resolve()
-		console.log('once')
+		console.log(2, 'once')
 	});
+	
+	
 	One.hand('check', async (obj) => {
 		await Promise.resolve()
-		console.log('hand', obj)
+		console.log(obj, 'hand')
 	});
 
 	
-	//Two.emit('check')
-
-	// One.done('check', async () => {
-	// 	await Two.fire('check')
-	// })
-	// Two.once('check', async () => {
-	// 	await One.fire('check')
-	// })
-
 	
 	
 </script>
 <pre>
-once
-hand 1
-hand 2
+По порядку до 4
 </pre>

@@ -1,6 +1,7 @@
 <link data-name="bootstrap" rel="stylesheet" href="//bootswatch.com/4/cosmo/bootstrap.min.css">
 <script type="module">
-    import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+    //import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+    import { Fire } from '/vendor/akiyatkin/load/Elan.js'
 	let One = { ...Fire }
 	window.One = One
 	console.log(1, 'fire show')
@@ -18,18 +19,19 @@
 <script type="module">
 	console.log(4, 'once show')
 	One.done('show', (obj) => {
-		console.log(5, 'done')
+		console.log(8, 'done')
 	});
 	One.once('show', async (obj) => {
-		console.log(6, 'once')
+		console.log(5, 'once')
 		await Promise.resolve()
-		console.log(8, 'once end')
+		console.log(7, 'once end')
 	});
 	One.done('show', (obj) => {
 		console.log(9, 'done')
 	});
-	console.log(7, 'end')
+	console.log(6, 'end')
 </script>
+
 <pre>
 Цифры по порядку до 9
 </pre>

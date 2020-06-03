@@ -1,6 +1,7 @@
 <link data-name="bootstrap" rel="stylesheet" href="//bootswatch.com/4/cosmo/bootstrap.min.css">
 <script type="module">
-    import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+    //import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+    import { Fire } from '/vendor/akiyatkin/load/Elan.js'
 
 	let Test = { ...Fire }
 	window.Test = Test
@@ -15,15 +16,15 @@
 		})
 
 		Test.race('show', () => {
-		 	console.log(2, 'race')
+		 	console.log(3, 'race')
 		})		
 
 		Test.hand('show', () => {
-		 	console.log(3, 'hand')
+		 	console.log(4, 'hand')
 		})
 		console.log(0)
 		Test.fire('show',1);	
-		console.log(4)
+		console.log(2)
 		
 	})();
 	

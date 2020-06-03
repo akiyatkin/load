@@ -1,0 +1,17 @@
+
+<script type="module">
+    import { Fire } from '/vendor/akiyatkin/load/Elan.js'
+
+	let Test = { ...Fire }
+	window.Test = Test
+
+	
+	Test.fire('check', 1)
+	
+	Test.hand('check', obj => {
+	 	console.log(1,'asf')
+	})
+
+</script>
+
+<pre>1</pre>

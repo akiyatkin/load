@@ -1,13 +1,15 @@
 <link data-name="bootstrap" rel="stylesheet" href="//bootswatch.com/4/cosmo/bootstrap.min.css">
 <script type="module">
-    import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+    //import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+    import { Fire } from '/vendor/akiyatkin/load/Elan.js'
 
 	let Test = { ...Fire }
 	window.Test = Test
 	;(async () => {
+
 		Test.once('show', r => {
 			console.log('ONCE', r)
-		}).then(r => {
+		}).then(async r => {
 			console.log('AFTER', r)
 		})
 		
@@ -57,21 +59,13 @@
 ONCE undefined
 race 1
 before 1
-hand 1
-after 1
-done 1
 race 2
 before 2
+hand 1
 hand 2
+after 1
 after 2
+done 1
 done 2
 AFTER undefined
 </pre>
-<div class="d-flex border" style="overflow:hidden">
-    <div id="tadam" class="border w-50">
-        asdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfa
-    </div>
-    <div class="border" style="margin-left:-500px; margin-right:-300px">
-        asdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfaasdf asd fas dfa
-    </div>
-</div>
