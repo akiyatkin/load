@@ -1,6 +1,34 @@
-
+let createPromise = (callback) => { //Промис с вшнешним управлением promise.resolve()
+	let resolve
+	let promise = new Promise(r => resolve = r)	
+	promise.resolve = result => {
+		if (callback) callback(promise, result)
+		resolve(result)
+	}
+	return promise
+}
+let getContext = (that, name) => {  // Контекст событий name у объекта that. Метод приватный
+	if (!that.__fire) that.__fire = {}
+	if (that.__fire[name]) return that.__fire[name]
+	return that.__fire[name] = new Context(that, name)
+}
+let allstack = async (lists, callback) => {
+	let list = lists.find(list => list.length)
+	if (!list) {
+		if (callback) callback()
+		return
+	}
+	let i = list.length-1
+	let el = list[i]
+	let r = await el
+	if (list[i] === el) list.splice(i, 1)
+	await allstack(lists, (nr) => {
+		if (r == null) r = nr
+		if (callback) callback(r) //callback запустится без задержки
+	})
+	return r
+}
 class Context {
-	
 	constructor(that, name) {
 		this.res = new Map
 		this.once = [] //одноразоыве события замедляющее генерацию, перед race
@@ -9,39 +37,11 @@ class Context {
 		this.hand = [] //Запускаются с ожиданием
 		this.after = []
 		this.done = []
-
-		this.that = that
-		this.name = name
-		this.promise = this.createPromise()
-	}
-	createPromise() {
-		return new Promise(resolve => this.resolve = (event) => {
-			this.promise = this.createPromise()
-			resolve()
-		})
-	}
-	all (callback) {
-		//Промисы одних событий не блокируют другие события, по этому ждать надо по всем сразу
-		for (let [obj, event] of this.res) {
-			if (!event.start) continue // не выполняется
-			if (event.end) continue // выполнилось
-			return this.promise.then(()=>{
-				return this.all(callback)
-			})
-		}
-
-		if (callback) return callback()
-	}
-	checkonce (callback) {
-		for (let [obj, event] of this.res) {
-			if (!event.start) continue
-			let list = this.once.map(callback => callback())
-			this.once = list.map(result => { return () => result } ) //заменили функции результатом
-			testall(list, () => {
-				callback()
-			})
-			break
-		}
+		this.stackonce = [] //Промисы событий на 1 раз
+		this.stackevents = [] //Промисы всех запущенных событий
+		this.that = that //Владелец контекста событий
+		this.name = name //Имя контекста событий
+		this.promise = createPromise() // промис с внешним управлением promise.resolve()
 		
 	}
 	getEvent (obj) {
@@ -55,293 +55,250 @@ class Event {
 	constructor(context, obj) {
 		this.context = context
 		this.obj = obj
-		this.promise = this.createPromise()
+		this.init()
 	}
-	createPromise() {
-		return new Promise(resolve => {
-			this.resolve = (result) => {
-				this.end = true
-				this.result = result
-				this.context.resolve(this)
-				resolve(result)
-			}
+	init () {
+		this.promise = createPromise((promise, result) => {
+			promise.end = true
+			promise.result = result
+			this.context.promise.resolve()
 		})
 	}
 	drop() {
-		if (!this.start) return
-		this.promise = this.createPromise()
-		delete this.end
-		delete this.start
-		//delete this.startpromise
-		delete this.result
+		if (!this.promise.start) return //Событие итак дропнутое
+		this.init()
 	}
-	ready (callback) {
-		//Подходит толкьо если событие выполнено
-		if (!this.end) {
-			this.promise.then( () => this.ready(callback))
-		} else {
-			callback(this.result) //callback запускается в потоке, где точно событие выполнено
-		}
-	}
-	step (callback) {
-		//Подходит если событие не выолнялось или выполнено
-		//Не можем обрабатывать результата, так как null может быть результатом или незапущенным событием
-		return new Promise(resolve => {
-			if (!this.start) {
-				let r = callback()
-				resolve(r)
-			} else {
-				this.ready(() => {
-					let r = callback()
-					resolve(r)
-				})
-			}
-		})
+	async whenfree (callback) {
+		if (!this.promise.start) return callback()
+		if (this.promise.end) return callback()
+		await this.promise
+		return callback()
 	}
 }
 
 
-
-
-
-
-let train = (list, obj, callback, i = 0, res) => {
-	//train блокирует ноые события, значит обработчики поторно не будут запускаться и их промисы действительны во времени
-	if (res != null) return callback(res) //Выход по требованию обработчика
-	if (list.length == i) return callback() //Обработчики закончились, 
-	let hand = list[i++]
-	let r = hand(obj)
-	if (r && r.then) return r.then(r => train(list, obj, callback, i, r))
-	return train(list, obj, callback, i, r)
-}
-let testall = (list, callback) => {
-	let promises = list.filter(res => res && res.then)
-	if (promises.length) {
-		Promise.all(promises).then(()=>{
-			callback()
-		})
-	} else {
-		callback()
-	}
-}
-// let testall = (list, callback, i = 0) => {
-// 	if (list.length == i) return callback() //Обработчики закончились, 
-// 	let r = list[i++]
-// 	if (r && r.then) return r.then(r => testall(list, callback, i))
-// 	return testall(list, callback, i)
-// }
-
-let getContext = (that, name) => {  // Контекст события {res:, : } в res хранятся все результаты
-	if (!that.__fire) that.__fire = {}
-	if (that.__fire[name]) return that.__fire[name]
-	return that.__fire[name] = new Context(that, name)
-}
 
 let Fire = {
 	getContext (name) {
 		return getContext(this, name)
 	},
 	on (name, obj) { return this.fire(name, obj)},
-	// fire (name, obj) {
-	// 	//Если есть объект события, то с сохранением иначе с повторениями
-	// 	return this.emit(name, obj)
-	// 	//return typeof obj == 'undefined' ? this.puff(name, obj) : this.emit(name, obj)
-	// },
+
 	puff (name, obj) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
-		if (event.start && !event.end) return event.promise
+		if (event.promise.start && !event.promise.end) return event.promise
 		return this.emit(name, obj)
 	},
 	emit (name, obj) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
-		return event.step(() => {
+		return event.whenfree(() => {
 			event.drop() 
 			return this.fire(name, obj)
 		})
 	},
-	fire (name, obj) {
+	async fire (name, obj) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
-		if (event.start) return event.promise
-		event.start = true
-
-		//Невозможно гарантировать, чтобы генерация была всегда до подписки! 
-		//НО такая ситуация нужна для теста! Дело не в том что событие генерируется до подписки
+		if (event.promise.start) return event.promise
 		
-		//setTimeout( () => { 
-		//timeout откладыает выполнение через все <script> вставленные в документ и гарантирует все подписки
-			//event.startpromise = true
-			context.checkonce(() => {
-				context.race.map(callback => callback(obj))
-				testall(context.before.map(callback => callback(obj)), () => {
-					train(context.hand, obj, res => {
-						testall(context.after.map(callback => callback(obj, res)), () => {
-							event.resolve(res)
-							context.done.map(callback => callback(obj, res))
-						})
-					})
-				})
-			})
-		//}, 1)
+		//once
+		context.stackevents.push(event.promise)
+		context.startonce = true
+		event.promise.start = true
+		context.once.map(callback => context.stackonce.push(callback()))
+		context.once.length = 0
+			
+		//race
+		await allstack([
+			context.stackonce
+		], () => {
+			event.promise.startrace = true
+			context.race.map(callback => callback(obj))	
+		})
+		
+		
+		//before
+		await allstack([
+			context.stackonce
+		], () => {
+			event.promise.startbefore = true
+			event.promise.stackbefore = context.before.map(callback => callback(obj))
+		})
+		
+
+		//hand
+		await allstack([
+			context.stackonce,
+			event.promise.stackbefore
+		], () => {
+			event.promise.starthand = true
+			event.promise.stackhand = context.hand.map(callback => callback(obj))
+		})
+
+		let result = await allstack([event.promise.stackhand])
+		
+		//after
+		await allstack([
+			context.stackonce,
+			event.promise.stackbefore,
+			event.promise.stackhand
+		], () => {
+			event.promise.startafter = true
+			event.promise.stackafter = context.after.map(callback => callback(obj, result))	
+		})
+		
+		
+		//done
+		await allstack([
+			context.stackonce,
+			event.promise.stackbefore, 
+			event.promise.stackhand,
+			event.promise.stackafter
+		], () => {
+			event.promise.resolve(result)
+			event.promise.startdone = true
+			context.done.map(callback => callback(obj, result))	
+		})
 		return event.promise
 	},
+	
 	elan (name, obj) {
 		//fire и сбрасываются события для других объектов
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
-		return event.step(() => {
-			if (event.start) return event.promise
-			return context.all(() => {
-				for (let [obj, event] of context.res) {
-					event.drop()
-				}
-				return this.fire(name, obj)
-			})
-		})
-	},
-	
-	/*is (name, obj) {
-		return this.on(name, obj)
-	},*/
-
-	tik (name) {
-		let context = getContext(this, name)
-		return context.all(()=> {
+		if (event.promise.start) return event.promise
+		
+		allstack([context.stackevents], () => {
 			for (let [obj, event] of context.res) {
 				event.drop()
 			}
+			this.fire(name, obj)
 		})
+		return event.promise
 	},
 
-	/*all (name, callback) {
+	tik (name) {
 		let context = getContext(this, name)
-		if (!context.res.length) return context.promise.then(event => {
-			//Один выполнился, но могли и ноыве появится в его потоке, надо ждать всех
-			return context.all(callback)
+		return allstack([context.stackevents], () => {
+			for (let [obj, event] of context.res) {
+				event.drop()
+			}	
 		})
-		return context.all(callback)
-	},*/
+	},
 	
 
 	drop (name, obj) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
-		return event.step(() => {
+		return event.whenfree(() => {
 			event.drop()
 		})
 	},
-	achieve (name, obj, res) {
+	keep (name, obj, res) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
-		return event.step(() => {
+		return event.whenfree(() => {
 			event.drop()
-			event.start = true
-			//event.startpromise = true
-			context.race.map(callback => callback(obj))
-			event.resolve(res)
-			context.done.map(callback => callback(obj, res))
+			
+			context.startonce = true
+			event.promise.start = true
+			event.promise.startrace = true
+			event.promise.startbefore = true
+			event.promise.starthand = true
+			event.promise.startafter = true
+			event.promise.startdone = true
+
+			event.promise.resolve(res)
 		})
 	},
 	race (name, callback) {
-		//race не обрывается, всё выполняется, результата у события нет
 		let context = getContext(this, name)
-		context.race.push(callback);
+		context.race.push(callback)
 		for (let [obj, event] of context.res) {
-			if (!event.start) continue
-			//if (!event.startpromise) continue
-			callback(obj)
+			if (!event.promise.startrace) continue
+			allstack([
+				context.stackonce
+			], () => {
+				callback(obj) 
+			})
 		}
-		return context.promise
 	},
 	before (name, callback) {
 		let context = getContext(this, name)
 		context.before.push(callback)
 		for (let [obj, event] of context.res) {
-			if (!event.start) continue
-			callback(obj)
+			if (!event.promise.startbefore) continue
+			allstack([
+				context.stackonce
+			], () => {
+				callback(obj) 
+			}) 
 		}
-		return context.promise
+		
 	},
 	hand (name, callback) {
 		let context = getContext(this, name)
 		context.hand.push(callback)
-		
 		for (let [obj, event] of context.res) {
-			if (!event.start) continue //ЕЩё не запускалось
-			if (!event.end) continue //Ещё не закончился Push добавлен в список callback Запуститься со всеми
-
-			let result = event.result //Уже выполнено. Важно знать как это выполнение остановилось
-			if (result != null) continue //Оборавалось раньше, не выполняем. Какой-то подписчик вернул для этого obj что-то
-			
-			event.drop()
-			event.start = true
-			//event.startpromise = true
-			let lengthafter = context.after.length
-			let lengthdone = context.done.length
-			train([callback], obj, result => {
-				train(context.after, obj, () => {
-					event.resolve(result)
-					for (let i = lengthdone; i < context.done.length; i++) {
-						context.done[i](obj, result)
-					}
-				}, lengthafter, result)
-			})
-			
+			if (!event.promise.starthand) continue //Ещё не закончился Push добавлен в список callback Запуститься со всеми
+			allstack([
+				context.stackonce,
+				event.promise.stackbefore
+			], () => {
+				callback(obj) 
+			}) 
 		}
-		return context.promise
 	},
 	after (name, callback) {
 		let context = getContext(this, name)
 		context.after.push(callback);
 		for (let [obj, event] of context.res) {
-			if (!event.end) continue
-			let result = event.result
-			event.drop()
-			event.start = true
-			//event.startpromise = true
-			let lengthdone = context.done.length
-			train(context.after, obj, () => {
-				event.resolve(result)
-				for (let i = lengthdone; i < context.done.length; i++) {
-					context.done[i](obj, result)
-				}
-			}, context.after.length-1, result)			
+			if (!event.promise.startafter) continue //Ещё не закончился Push добавлен в список callback Запуститься со всеми
+			
+			allstack([
+				context.stackonce,
+				event.promise.stackbefore, 
+				event.promise.stackhand
+			], () => {
+				callback(obj, event.promise.result) 
+			})
 		}
-		return context.promise
 	},
 	
 	done (name, callback) {
 		let context = getContext(this, name)
 		context.done.push(callback);
-		context.checkonce(() => {
-			for (let [obj, event] of context.res) {
-				if (!event.end) continue
-				callback(obj, event.result)
-			}
-		})
-		return context.promise
-	},
-	once (name, callback) {
-		let context = getContext(this, name)
-		if (!callback) return context.promise
-		for (let [obj, event] of context.res) {//callback запускается раньше всех, до before c ожиданием. Промис вместе с результатом
-			if (event.start) {
-				let oneres = callback(event.obj)
-				callback = () => oneres //Мы не знаем запущены ли once или нет сейчас, так как события генерируются с паузой
-				break
-			}
-		}
-		//промис контекста замедляет все события
+		for (let [obj, event] of context.res) {
+			if (!event.promise.startdone) continue
 
-		context.once.push(callback)
-		context.promise.then(() => {
-			context.all( () => {
-				context.once = []
+			allstack([
+				context.stackonce,
+				event.promise.stackbefore, 
+				event.promise.stackhand,
+				event.promise.stackafter
+			], () => {
+				callback(obj, event.promise.result)	
 			})
-		})
-		return context.promise
+		}
+	},
+	async once (name, callback) { //Промис подписыается на завершение следующего запуска, а callback сразу
+		let context = getContext(this, name)
+		if (callback) {
+			if (context.startonce) {
+				let r = callback()
+				context.stackonce.push(r)
+			} else {
+				context.once.push(callback)
+			}
+			
+		}
+		await context.promise //Нужен любой запуск вообще
+		await allstack([  //И только потом ждём что всё что запустилось выполнилось
+			context.stackonce, //раз уж только что на once подписались
+			context.stackevents
+		]) 
 	},
 	wait (name, obj) {
 		let context = getContext(this, name)

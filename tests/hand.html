@@ -1,7 +1,6 @@
 
 <script type="module">
-    //import { Fire } from '/vendor/akiyatkin/load/Fire.js'
-    import { Fire } from '/vendor/akiyatkin/load/Elan.js'
+    import { Fire } from '/vendor/akiyatkin/load/Fire.js'
 
 	let One = { ...Fire }
 	window.One = One
@@ -17,15 +16,26 @@
 	});
 	
 	
-	One.hand('check', async (obj) => {
-		await Promise.resolve()
-		console.log(obj, 'hand')
-	});
+	
+	setTimeout(async () => {
 
+		let res = One.fire('check', 5)		
+		One.hand('check', async (obj) => {
+			await Promise.resolve()
+			console.log(obj, 'hand1')
+			return 'good'
+		});
+		// One.hand('check', async (obj) => {
+		// 	await Promise.resolve()
+		// 	console.log(obj, 'hand2')
+		// 	return 'nice'
+		// });
+		console.log(6, await res)
+	}, 100)
 	
 	
 	
 </script>
 <pre>
-По порядку до 4
+До 6
 </pre>

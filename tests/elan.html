@@ -1,17 +1,20 @@
 
 <script type="module">
-    import { Fire } from '/vendor/akiyatkin/load/Elan.js'
+    import { Fire } from '/vendor/akiyatkin/load/Fire.js'
 
 	let Test = { ...Fire }
 	window.Test = Test
 
-	
-	Test.fire('check', 1)
-	
-	Test.hand('check', obj => {
-	 	console.log(1,'asf')
-	})
+	Test.fire('check', 'a')
 
+	Test.elan('check', 'b').then(async () => {	
+		Test.hand('check', obj => {
+		 	console.log(1, obj)
+		})
+	})
+	
+	
 </script>
 
-<pre>1</pre>
+<pre>До 1
+</pre>

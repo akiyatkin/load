@@ -48,7 +48,7 @@ CDN.hand('init', async () => {
 		el = list[i];
 		src = el.getAttribute('src');
 		if (!src) continue;
-		await Load.achieve('script', src);
+		await Load.keep('script', src);
 		if (el.dataset.name) conf.cdnjs[el.dataset.name] = src;
 	}
 
@@ -59,7 +59,7 @@ CDN.hand('init', async () => {
 		href = el.getAttribute('href');
 		if (!href) continue;
 		if (el.dataset.name) conf.cdncss[el.dataset.name] = href;
-		await Load.achieve('css', href);
+		await Load.keep('css', href);
 	}
 })
 window.CDN = CDN
