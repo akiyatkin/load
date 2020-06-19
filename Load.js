@@ -64,6 +64,6 @@ Load.hand('css', src => {
 });
 
 
-
+window.NLoad = Load
 export default Load
 export {Load}

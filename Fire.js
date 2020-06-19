@@ -150,8 +150,8 @@ let Fire = {
 		})
 		
 		
-		//done
-		await allstack([
+		//done нельзя делать await так как функция должна вернуть оригинальный event.promise а после resolve(result) может быть drop
+		allstack([
 			context.stackonce,
 			event.promise.stackbefore, 
 			event.promise.stackhand,
