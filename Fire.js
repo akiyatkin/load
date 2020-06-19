@@ -308,5 +308,5 @@ let Fire = {
 	}
 }
 
-export { Fire }
+export { Fire, createPromise }
 export default Fire
