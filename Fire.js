@@ -64,7 +64,9 @@ let firerun = async (context, event, obj) => {
 		event.promise.stackhand = context.hand.map(callback => callback(obj))
 	})
 
-	let result = await allstack([event.promise.stackhand])
+	let result = await allstack([
+		event.promise.stackhand
+	])
 	
 	//after
 	await allstack([
@@ -84,7 +86,7 @@ let firerun = async (context, event, obj) => {
 		event.promise.stackhand,
 		event.promise.stackafter
 	], () => {
-		event.promise.resolve(result)
+		event.promise.resolve(result) //Подписки на событие через then запустятся после after. Хочешь получить результат раньше подписывайся на after
 		event.promise.startdone = true
 		context.done.map(callback => callback(obj, result))	
 	})
