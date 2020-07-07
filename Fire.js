@@ -28,6 +28,67 @@ let allstack = async (lists, callback) => {
 	})
 	return r
 }
+let firerun = async (context, event, obj) => {
+	//once
+	context.stackevents.push(event.promise)
+	context.startonce = true
+	event.promise.start = true
+	context.once.map(callback => context.stackonce.push(callback()))
+	context.once.length = 0;
+	
+		
+	//race
+	await allstack([
+		context.stackonce
+	], () => {
+		event.promise.startrace = true
+		context.race.map(callback => callback(obj))	
+	})
+	
+	
+	//before
+	await allstack([
+		context.stackonce
+	], () => {
+		event.promise.startbefore = true
+		event.promise.stackbefore = context.before.map(callback => callback(obj))
+	})
+	
+
+	//hand
+	await allstack([
+		context.stackonce,
+		event.promise.stackbefore
+	], () => {
+		event.promise.starthand = true
+		event.promise.stackhand = context.hand.map(callback => callback(obj))
+	})
+
+	let result = await allstack([event.promise.stackhand])
+	
+	//after
+	await allstack([
+		context.stackonce,
+		event.promise.stackbefore,
+		event.promise.stackhand
+	], () => {
+		event.promise.startafter = true
+		event.promise.stackafter = context.after.map(callback => callback(obj, result))	
+	})
+	
+	
+	//done нельзя делать await так как функция должна вернуть оригинальный event.promise а после resolve(result) может быть drop
+	allstack([
+		context.stackonce,
+		event.promise.stackbefore, 
+		event.promise.stackhand,
+		event.promise.stackafter
+	], () => {
+		event.promise.resolve(result)
+		event.promise.startdone = true
+		context.done.map(callback => callback(obj, result))	
+	})
+}
 class Context {
 	constructor(that, name) {
 		this.res = new Map
@@ -68,11 +129,11 @@ class Event {
 		if (!this.promise.start) return //Событие итак дропнутое
 		this.init()
 	}
-	async whenfree (callback) {
+	whenfree (callback) {
 		if (!this.promise.start) return callback()
 		if (this.promise.end) return callback()
-		await this.promise
-		return callback()
+		this.promise.then(callback)
+		return this.promise
 	}
 }
 
@@ -98,72 +159,14 @@ let Fire = {
 			return this.fire(name, obj)
 		})
 	},
-	async fire (name, obj) {
+	
+	fire (name, obj) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
 		if (event.promise.start) return event.promise
-		
-		//once
-		context.stackevents.push(event.promise)
-		context.startonce = true
-		event.promise.start = true
-		context.once.map(callback => context.stackonce.push(callback()))
-		context.once.length = 0
-			
-		//race
-		await allstack([
-			context.stackonce
-		], () => {
-			event.promise.startrace = true
-			context.race.map(callback => callback(obj))	
-		})
-		
-		
-		//before
-		await allstack([
-			context.stackonce
-		], () => {
-			event.promise.startbefore = true
-			event.promise.stackbefore = context.before.map(callback => callback(obj))
-		})
-		
-
-		//hand
-		await allstack([
-			context.stackonce,
-			event.promise.stackbefore
-		], () => {
-			event.promise.starthand = true
-			event.promise.stackhand = context.hand.map(callback => callback(obj))
-		})
-
-		let result = await allstack([event.promise.stackhand])
-		
-		//after
-		await allstack([
-			context.stackonce,
-			event.promise.stackbefore,
-			event.promise.stackhand
-		], () => {
-			event.promise.startafter = true
-			event.promise.stackafter = context.after.map(callback => callback(obj, result))	
-		})
-		
-		
-		//done нельзя делать await так как функция должна вернуть оригинальный event.promise а после resolve(result) может быть drop
-		allstack([
-			context.stackonce,
-			event.promise.stackbefore, 
-			event.promise.stackhand,
-			event.promise.stackafter
-		], () => {
-			event.promise.resolve(result)
-			event.promise.startdone = true
-			context.done.map(callback => callback(obj, result))	
-		})
+		firerun(context, event, obj)
 		return event.promise
 	},
-	
 	elan (name, obj) {
 		//fire и сбрасываются события для других объектов
 		let context = getContext(this, name)
@@ -200,8 +203,8 @@ let Fire = {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
 		return event.whenfree(() => {
+			if (event.promise.result === res) return
 			event.drop()
-			
 			context.startonce = true
 			event.promise.start = true
 			event.promise.startrace = true
@@ -209,7 +212,6 @@ let Fire = {
 			event.promise.starthand = true
 			event.promise.startafter = true
 			event.promise.startdone = true
-
 			event.promise.resolve(res)
 		})
 	},
