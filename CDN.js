@@ -5,6 +5,7 @@ let CDN = {
 	...Fire,
 	//Методы вместо событий, так как требуется 2 параметра
 	//Для событий нужен 1 идентичный объект, которого нет с name, src
+	//Но эти методы внутри вызывают событие уже с 1 параметром, по этому возможны дублирующие вызовы
 	js: async (name, src) => {
 		await CDN.fire('init')
 		let cdns = Config.get('load').cdnjs
@@ -12,7 +13,7 @@ let CDN = {
 			src = cdns[name]
 		} else {
 			if (!src) return
-			cdns[name] = src
+			cdns[name] = src //Запомнили соответствие name => src
 		}
 		return Load.fire('script', src)
 	},
