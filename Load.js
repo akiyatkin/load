@@ -48,7 +48,8 @@ Load.hand('script', src => {
 		let s = document.createElement("script")
 	    s.type = "text/javascript"
 	    s.async = true
-	    s.defer = true
+		s.defer = true
+		s.crossorigin="anonymous"
 	    s.onload = resolve
 		s.src = src
 	    document.getElementsByTagName('head')[0].appendChild(s)
@@ -58,7 +59,8 @@ Load.hand('script', src => {
 Load.hand('css', src => {
     let link  = document.createElement('link')
     link.rel  = 'stylesheet'
-    link.type = 'text/css'
+	link.type = 'text/css'
+	link.crossorigin="anonymous"
     link.href = src
     document.getElementsByTagName('head')[0].appendChild(link)
 });
