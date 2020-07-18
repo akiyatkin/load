@@ -1,14 +1,9 @@
-import CallFrame from "/vendor/akiyatkin/waitshow/CallFrame.js"
+import { CallFrame } from "/vendor/akiyatkin/waitshow/CallFrame.js"
+import { isViewport } from "/vendor/akiyatkin/load/isViewport.js"
 
-let isVis = (el) => {
-    var H = window.innerHeight
-    var r = el.getBoundingClientRect(); var t = r.top; var b = r.bottom
-    let vis = !!Math.max(0, t > 0 ? H - t : (b < H ? b : H))
-    return vis
-}
 let inViewport = function (el, cb) {
     let test = () => {
-        if (!isVis(el)) return
+        if (!isViewport(el)) return
         window.removeEventListener('resize', handler)
         window.removeEventListener('scroll', handler)
         cb()
