@@ -1,0 +1,35 @@
+<link data-name="bootstrap" rel="stylesheet" href="//bootswatch.com/4/cosmo/bootstrap.min.css">
+<script type="module">
+    import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+
+	let Test = { ...Fire }
+	window.Test = Test
+
+	const wait = delay => new Promise(resolve => setTimeout(resolve, delay))
+
+	;(async () => {
+		Test.hand('show', async (event, res, opt) => {
+			await wait(Math.random()*100)
+			console.log(opt)
+		})
+		let turn = call => {
+			let promise = call()
+		}
+
+		await wait(50); Test.puff('show',1,1)
+		await wait(50); Test.puff('show',1,2)
+		await wait(50); Test.puff('show',1,3)
+		await wait(50); Test.puff('show',1,4)
+		await wait(50); Test.puff('show',1,5)
+		await wait(50); Test.puff('show',1,6)
+		await wait(150); Test.puff('show',1,7)
+		await wait(50); Test.puff('show',1,8)
+		await wait(50); Test.puff('show',1,9)
+		
+		
+	})();
+	
+</script>
+<pre>
+Счёт от 1 до 2
+</pre>

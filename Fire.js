@@ -1,6 +1,6 @@
 let createPromise = (callback) => { //Промис с вшнешним управлением promise.resolve()
 	let resolve
-	let promise = new Promise(r => resolve = r)	
+	let promise = new Promise(r => resolve = r)
 	promise.resolve = result => {
 		if (callback) callback(promise, result)
 		resolve(result)
@@ -18,7 +18,7 @@ let allstack = async (lists, callback) => {
 		if (callback) callback()
 		return
 	}
-	let i = list.length-1
+	let i = list.length - 1
 	let el = list[i]
 	let r = await el
 	if (list[i] === el) list.splice(i, 1)
@@ -28,32 +28,34 @@ let allstack = async (lists, callback) => {
 	})
 	return r
 }
-let firerun = async (context, event, obj) => {
+let firerun = async (context, event, obj, opt) => {
 	//once
+	event.opt = opt
+
 	context.stackevents.push(event.promise)
 	context.startonce = true
 	event.promise.start = true
 	context.once.map(callback => context.stackonce.push(callback()))
 	context.once.length = 0;
-	
-		
+
+
 	//race
 	await allstack([
 		context.stackonce
 	], () => {
 		event.promise.startrace = true
-		context.race.map(callback => callback(obj))	
+		context.race.map(callback => callback(obj, null, opt))
 	})
-	
-	
+
+
 	//before
 	await allstack([
 		context.stackonce
 	], () => {
 		event.promise.startbefore = true
-		event.promise.stackbefore = context.before.map(callback => callback(obj))
+		event.promise.stackbefore = context.before.map(callback => callback(obj, null, opt))
 	})
-	
+
 
 	//hand
 	await allstack([
@@ -61,13 +63,13 @@ let firerun = async (context, event, obj) => {
 		event.promise.stackbefore
 	], () => {
 		event.promise.starthand = true
-		event.promise.stackhand = context.hand.map(callback => callback(obj))
+		event.promise.stackhand = context.hand.map(callback => callback(obj, null, opt))
 	})
 
 	let result = await allstack([
 		event.promise.stackhand
 	])
-	
+
 	//after
 	await allstack([
 		context.stackonce,
@@ -75,20 +77,20 @@ let firerun = async (context, event, obj) => {
 		event.promise.stackhand
 	], () => {
 		event.promise.startafter = true
-		event.promise.stackafter = context.after.map(callback => callback(obj, result))	
+		event.promise.stackafter = context.after.map(callback => callback(obj, result, opt))
 	})
-	
-	
+
+
 	//done нельзя делать await так как функция должна вернуть оригинальный event.promise а после resolve(result) может быть drop
 	allstack([
 		context.stackonce,
-		event.promise.stackbefore, 
+		event.promise.stackbefore,
 		event.promise.stackhand,
 		event.promise.stackafter
 	], () => {
 		event.promise.resolve(result) //Подписки на событие через then запустятся после after. Хочешь получить результат раньше подписывайся на after
 		event.promise.startdone = true
-		context.done.map(callback => callback(obj, result))	
+		context.done.map(callback => callback(obj, result, opt))
 	})
 }
 class Context {
@@ -105,11 +107,11 @@ class Context {
 		this.that = that //Владелец контекста событий
 		this.name = name //Имя контекста событий
 		this.promise = createPromise() // промис с внешним управлением promise.resolve()
-		
+
 	}
-	getEvent (obj) {
+	getEvent(obj) {
 		let event = this.res.get(obj)
-		if (!event) this.res.set(obj, event = new Event(this, obj) )
+		if (!event) this.res.set(obj, event = new Event(this, obj))
 		return event
 	}
 }
@@ -120,7 +122,7 @@ class Event {
 		this.obj = obj
 		this.init()
 	}
-	init () {
+	init() {
 		this.promise = createPromise((promise, result) => {
 			promise.end = true
 			promise.result = result
@@ -131,10 +133,10 @@ class Event {
 		if (!this.promise.start) return //Событие итак дропнутое
 		this.init()
 	}
-	whenfree (callback) {
+	whenfree(callback) {
 		if (!this.promise.start) return callback()
 		if (this.promise.end) return callback()
-		this.promise.then(callback)
+		this.promise.then(() => this.whenfree(callback) )
 		return this.promise
 	}
 }
@@ -142,66 +144,85 @@ class Event {
 
 
 let Fire = {
-	getContext (name) {
+	getContext(name) {
 		return getContext(this, name)
 	},
-	on (name, obj) { return this.fire(name, obj)},
+	on(name, obj) { return this.fire(name, obj) },
 
-	puff (name, obj) {
+	puff(name, obj, opt) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
-		if (event.promise.start && !event.promise.end) return event.promise
-		return this.emit(name, obj)
+
+		event.promise.puff = { name, obj, opt }
+		
+		if (!event.pufftimer) event.pufftimer = setTimeout(() => {
+			delete event.pufftimer;
+			if (!event.promise.puff) return //Может сработать предыдущий цикл и выполнить puff
+			let { name, obj, opt } = event.promise.puff
+			return this.emit(name, obj, opt)
+		}, 500)
+		// if (event.promise.start && !event.promise.end) {
+		// 	return event.promise.then(()=>{
+		// 		//Нужно чтобы при подряд вызовах 1,2,3,4 выполнился только 1 и 4
+		// 		if (!event.promise.puff) return event.promise
+		// 		let { name, obj, opt } = event.promise.puff;
+		// 		return this.emit(name, obj, opt)
+		// 	})
+		// }
+		//promise.end есть а promise ещё не сбросился с promise.pufftimer
+		//puff сохранён но запущен прошлый и закончен, но не сброшен promise.pufftimer
+		return event.promise
+		return this.emit(name, obj, opt)
 	},
-	emit (name, obj) {
+	emit(name, obj, opt) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
 		return event.whenfree(() => {
-			event.drop() 
-			return this.fire(name, obj)
+			event.drop()
+			return this.fire(name, obj, opt)
 		})
 	},
-	
-	fire (name, obj) {
+
+	fire(name, obj, opt) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
 		if (event.promise.start) return event.promise
-		firerun(context, event, obj)
+		firerun(context, event, obj, opt)
 		return event.promise
 	},
-	elan (name, obj) {
+	elan(name, obj, opt) {
 		//fire и сбрасываются события для других объектов
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
 		if (event.promise.start) return event.promise
-		
+
 		allstack([context.stackevents], () => {
 			for (let [obj, event] of context.res) {
 				event.drop()
 			}
-			this.fire(name, obj)
+			this.fire(name, obj, opt)
 		})
 		return event.promise
 	},
 
-	tik (name) {
+	tik(name) {
 		let context = getContext(this, name)
 		return allstack([context.stackevents], () => {
 			for (let [obj, event] of context.res) {
 				event.drop()
-			}	
+			}
 		})
 	},
-	
 
-	drop (name, obj) {
+
+	drop(name, obj) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
 		return event.whenfree(() => {
 			event.drop()
 		})
 	},
-	keep (name, obj, res) {
+	keep(name, obj, res, opt) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
 		return event.whenfree(() => {
@@ -217,7 +238,7 @@ let Fire = {
 			event.promise.resolve(res)
 		})
 	},
-	race (name, callback) {
+	race(name, callback) {
 		let context = getContext(this, name)
 		context.race.push(callback)
 		for (let [obj, event] of context.res) {
@@ -225,11 +246,11 @@ let Fire = {
 			allstack([
 				context.stackonce
 			], () => {
-				callback(obj) 
+				callback(obj)
 			})
 		}
 	},
-	before (name, callback) {
+	before(name, callback) {
 		let context = getContext(this, name)
 		context.before.push(callback)
 		for (let [obj, event] of context.res) {
@@ -237,12 +258,12 @@ let Fire = {
 			allstack([
 				context.stackonce
 			], () => {
-				callback(obj) 
-			}) 
+				callback(obj)
+			})
 		}
-		
+
 	},
-	hand (name, callback) {
+	hand(name, callback) {
 		let context = getContext(this, name)
 		context.hand.push(callback)
 		for (let [obj, event] of context.res) {
@@ -251,27 +272,27 @@ let Fire = {
 				context.stackonce,
 				event.promise.stackbefore
 			], () => {
-				callback(obj) 
-			}) 
+				callback(event.obj, null, event.opt)
+			})
 		}
 	},
-	after (name, callback) {
+	after(name, callback) {
 		let context = getContext(this, name)
 		context.after.push(callback);
 		for (let [obj, event] of context.res) {
 			if (!event.promise.startafter) continue //Ещё не закончился Push добавлен в список callback Запуститься со всеми
-			
+
 			allstack([
 				context.stackonce,
-				event.promise.stackbefore, 
+				event.promise.stackbefore,
 				event.promise.stackhand
 			], () => {
-				callback(obj, event.promise.result) 
+				callback(event.obj, event.promise.result, event.opt)
 			})
 		}
 	},
-	
-	done (name, callback) {
+
+	done(name, callback) {
 		let context = getContext(this, name)
 		context.done.push(callback);
 		for (let [obj, event] of context.res) {
@@ -279,15 +300,15 @@ let Fire = {
 
 			allstack([
 				context.stackonce,
-				event.promise.stackbefore, 
+				event.promise.stackbefore,
 				event.promise.stackhand,
 				event.promise.stackafter
 			], () => {
-				callback(obj, event.promise.result)	
+				callback(event.obj, event.promise.result, event.opt)
 			})
 		}
 	},
-	async once (name, callback) { //Промис подписыается на завершение следующего запуска, а callback сразу
+	async once(name, callback) { //Промис подписыается на завершение следующего запуска, а callback сразу
 		let context = getContext(this, name)
 		if (callback) {
 			if (context.startonce) {
@@ -296,19 +317,19 @@ let Fire = {
 			} else {
 				context.once.push(callback)
 			}
-			
+
 		}
 		await context.promise //Нужен любой запуск вообще
 		await allstack([  //И только потом ждём что всё что запустилось выполнилось
 			context.stackonce, //раз уж только что на once подписались
 			context.stackevents
-		]) 
+		])
 	},
-	wait (name, obj) {
+	wait(name, obj) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
 		return event.promise
-		
+
 	}
 }
 
