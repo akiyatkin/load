@@ -160,7 +160,7 @@ let Fire = {
 			if (!event.promise.puff) return //Может сработать предыдущий цикл и выполнить puff
 			let { name, obj, opt } = event.promise.puff
 			return this.emit(name, obj, opt)
-		}, 500)
+		}, 200)
 		// if (event.promise.start && !event.promise.end) {
 		// 	return event.promise.then(()=>{
 		// 		//Нужно чтобы при подряд вызовах 1,2,3,4 выполнился только 1 и 4
