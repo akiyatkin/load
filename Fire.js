@@ -152,7 +152,8 @@ let Fire = {
 	puff(name, obj, opt) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
-
+		
+		if (event.promise.end) event.drop()
 		event.promise.puff = { name, obj, opt }
 		
 		if (!event.pufftimer) event.pufftimer = setTimeout(() => {
