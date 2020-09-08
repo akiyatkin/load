@@ -152,16 +152,16 @@ let Fire = {
 	puff(name, obj, opt) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
-		
+
 		if (event.promise.end) event.drop()
 		event.promise.puff = { name, obj, opt }
 		
-		if (!event.pufftimer) event.pufftimer = setTimeout(() => {
-			delete event.pufftimer;
+		clearTimeout(event.pufftimer)
+		event.pufftimer = setTimeout(() => {
 			if (!event.promise.puff) return //Может сработать предыдущий цикл и выполнить puff
 			let { name, obj, opt } = event.promise.puff
 			return this.emit(name, obj, opt)
-		}, 200)
+		}, 400)
 		// if (event.promise.start && !event.promise.end) {
 		// 	return event.promise.then(()=>{
 		// 		//Нужно чтобы при подряд вызовах 1,2,3,4 выполнился только 1 и 4
