@@ -1,6 +1,7 @@
 import { CallFrame } from "/vendor/akiyatkin/waitshow/CallFrame.js"
 import { isViewport } from "/vendor/akiyatkin/load/isViewport.js"
 
+let second = false
 let inViewport = (el, cb) => {
     return new Promise(resolve => {
         let test = () => {
@@ -15,8 +16,10 @@ let inViewport = (el, cb) => {
         window.addEventListener('resize', handler)
         window.addEventListener('scroll', handler)
         
-        //Первая проверка после активности
+        //Первая проверка после активности или если были переходы по сайту
+        if (second) return handler()
         let init = () => {
+            second = true
             handler()
             document.body.removeEventListener('click', init)
             document.body.removeEventListener('mouseover', init)

@@ -44,49 +44,49 @@ let firerun = async (context, event, obj, opt) => {
 		context.stackonce
 	], () => {
 		event.promise.startrace = true
-		context.race.map(callback => callback(obj, null, opt))
+		context.race.map(callback => callback(obj, opt))
 	})
 
 
-	//before
+	//before till
 	await allstack([
 		context.stackonce
 	], () => {
-		event.promise.startbefore = true
-		event.promise.stackbefore = context.before.map(callback => callback(obj, null, opt))
+		event.promise.starttill = true
+		event.promise.stacktill = context.till.map(callback => callback(obj, opt))
 	})
 
 
 	//hand
 	await allstack([
 		context.stackonce,
-		event.promise.stackbefore
+		event.promise.stacktill
 	], () => {
 		event.promise.starthand = true
-		event.promise.stackhand = context.hand.map(callback => callback(obj, null, opt))
+		event.promise.stackhand = context.hand.map(callback => callback(obj, opt))
 	})
 
 	let result = await allstack([
 		event.promise.stackhand
 	])
 
-	//after
+	//after syne
 	await allstack([
 		context.stackonce,
-		event.promise.stackbefore,
+		event.promise.stacktill,
 		event.promise.stackhand
 	], () => {
-		event.promise.startafter = true
-		event.promise.stackafter = context.after.map(callback => callback(obj, result, opt))
+		event.promise.startsyne = true
+		event.promise.stacksyne = context.syne.map(callback => callback(obj, result, opt))
 	})
 
 
 	//done нельзя делать await так как функция должна вернуть оригинальный event.promise а после resolve(result) может быть drop
 	allstack([
 		context.stackonce,
-		event.promise.stackbefore,
+		event.promise.stacktill,
 		event.promise.stackhand,
-		event.promise.stackafter
+		event.promise.stacksyne
 	], () => {
 		event.promise.resolve(result) //Подписки на событие через then запустятся после after. Хочешь получить результат раньше подписывайся на after
 		event.promise.startdone = true
@@ -98,9 +98,9 @@ class Context {
 		this.res = new Map
 		this.once = [] //одноразоыве события замедляющее генерацию, перед race
 		this.race = [] //Запускаются первым без ожидания
-		this.before = []
+		this.till = []
 		this.hand = [] //Запускаются с ожиданием
-		this.after = []
+		this.syne = []
 		this.done = []
 		this.stackonce = [] //Промисы событий на 1 раз
 		this.stackevents = [] //Промисы всех запущенных событий
@@ -142,38 +142,67 @@ class Event {
 }
 
 
-
+// getContext(name) {
+// 		return getContext(this, name)
+// 	},
 let Fire = {
-	getContext(name) {
-		return getContext(this, name)
-	},
+	//depricated
 	on(name, obj) { return this.fire(name, obj) },
 
-	puff(name, obj, opt) {
+	// puff(name, obj, opt) {
+	// 	let context = getContext(this, name)
+	// 	let event = context.getEvent(obj)
+
+	// 	if (event.promise.end) event.drop()
+	// 	event.promise.puff = { name, obj, opt }
+		
+	// 	clearTimeout(event.pufftimer)
+	// 	event.pufftimer = setTimeout(() => {
+	// 		if (!event.promise.puff) return //Может сработать предыдущий цикл и выполнить puff
+	// 		let { name, obj, opt } = event.promise.puff
+	// 		return this.emit(name, obj, opt)
+	// 	}, 400)
+	// 	return event.promise
+	// },
+	puff(name, obj, gr, opt) {
+		if (!this.puff.storage) this.puff.storage = new Map()
+		
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
-
 		if (event.promise.end) event.drop()
-		event.promise.puff = { name, obj, opt }
-		
-		clearTimeout(event.pufftimer)
-		event.pufftimer = setTimeout(() => {
-			if (!event.promise.puff) return //Может сработать предыдущий цикл и выполнить puff
-			let { name, obj, opt } = event.promise.puff
-			return this.emit(name, obj, opt)
+
+		let groups = this.puff.storage.get(name)
+		if (!groups) this.puff.storage.set(name, groups = new Map())
+
+		let group = groups.get(gr)
+		if (!group) groups.set(gr, group = { timer: null, promise: createPromise() })
+
+		clearTimeout(group.timer)
+		group.timer = setTimeout(async ()=> {
+			let res = this.emit(name, obj, opt)
+			group.promise.resolve(res)
+			group.promise = createPromise()
 		}, 400)
-		// if (event.promise.start && !event.promise.end) {
-		// 	return event.promise.then(()=>{
-		// 		//Нужно чтобы при подряд вызовах 1,2,3,4 выполнился только 1 и 4
-		// 		if (!event.promise.puff) return event.promise
-		// 		let { name, obj, opt } = event.promise.puff;
-		// 		return this.emit(name, obj, opt)
-		// 	})
-		// }
-		//promise.end есть а promise ещё не сбросился с promise.pufftimer
-		//puff сохранён но запущен прошлый и закончен, но не сброшен promise.pufftimer
-		return event.promise
-		return this.emit(name, obj, opt)
+
+		return group.promise
+	},
+	chil(name, obj, gr, opt) {
+		if (!this.chil.storage) this.chil.storage = new Map()
+
+		let groups = this.chil.storage.get(name)
+		if (!groups) this.chil.storage.set(name, groups = new Map())
+
+		let group = groups.get(gr)
+		if (!group) groups.set(gr, group = { timer: null, promise: createPromise() })
+
+		clearTimeout(group.timer)
+		group.timer = setTimeout(async ()=> {
+			let res = this.fire(name, obj, opt)
+			group.promise.resolve(res)
+			group.promise = createPromise()
+		}, 400)
+
+		return group.promise
 	},
 	emit(name, obj, opt) {
 		let context = getContext(this, name)
@@ -183,7 +212,8 @@ let Fire = {
 			return this.fire(name, obj, opt)
 		})
 	},
-
+	
+	
 	fire(name, obj, opt) {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
@@ -206,13 +236,16 @@ let Fire = {
 		return event.promise
 	},
 
-	tik(name) {
+	tick (name) {
 		let context = getContext(this, name)
 		return allstack([context.stackevents], () => {
 			for (let [obj, event] of context.res) {
 				event.drop()
 			}
 		})
+	},
+	tik(name) { //depricated
+		return this.tick(name)
 	},
 
 
@@ -232,9 +265,9 @@ let Fire = {
 			context.startonce = true
 			event.promise.start = true
 			event.promise.startrace = true
-			event.promise.startbefore = true
+			event.promise.starttill = true
 			event.promise.starthand = true
-			event.promise.startafter = true
+			event.promise.startsyne = true
 			event.promise.startdone = true
 			event.promise.resolve(res)
 		})
@@ -251,18 +284,20 @@ let Fire = {
 			})
 		}
 	},
-	before(name, callback) {
+	till (name, callback) { // before = till
 		let context = getContext(this, name)
-		context.before.push(callback)
+		context.till.push(callback)
 		for (let [obj, event] of context.res) {
-			if (!event.promise.startbefore) continue
+			if (!event.promise.starttill) continue
 			allstack([
 				context.stackonce
 			], () => {
 				callback(obj)
 			})
 		}
-
+	},
+	before(name, callback) { //depricated till
+		return this.till(name, callback)
 	},
 	hand(name, callback) {
 		let context = getContext(this, name)
@@ -271,26 +306,29 @@ let Fire = {
 			if (!event.promise.starthand) continue //Ещё не закончился Push добавлен в список callback Запуститься со всеми
 			allstack([
 				context.stackonce,
-				event.promise.stackbefore
+				event.promise.stacktill
 			], () => {
-				callback(event.obj, null, event.opt)
+				callback(event.obj, event.opt)
 			})
 		}
 	},
-	after(name, callback) {
+	syne(name, callback) { // syne = after
 		let context = getContext(this, name)
-		context.after.push(callback);
+		context.syne.push(callback);
 		for (let [obj, event] of context.res) {
-			if (!event.promise.startafter) continue //Ещё не закончился Push добавлен в список callback Запуститься со всеми
+			if (!event.promise.startsyne) continue //Ещё не закончился Push добавлен в список callback Запуститься со всеми
 
 			allstack([
 				context.stackonce,
-				event.promise.stackbefore,
+				event.promise.stacktill,
 				event.promise.stackhand
 			], () => {
 				callback(event.obj, event.promise.result, event.opt)
 			})
 		}
+	},
+	after(name, callback) { //depricated syne
+		return this.syne(name, callback)
 	},
 
 	done(name, callback) {
@@ -301,9 +339,9 @@ let Fire = {
 
 			allstack([
 				context.stackonce,
-				event.promise.stackbefore,
+				event.promise.stacktill,
 				event.promise.stackhand,
-				event.promise.stackafter
+				event.promise.stacksyne
 			], () => {
 				callback(event.obj, event.promise.result, event.opt)
 			})
