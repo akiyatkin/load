@@ -178,7 +178,7 @@ let Fire = {
 		if (!group) groups.set(gr, group = { timer: null, promise: createPromise() })
 
 		clearTimeout(group.timer)
-		group.timer = setTimeout(async ()=> {
+		group.timer = setTimeout(() => {
 			let res = this.emit(name, obj, opt)
 			group.promise.resolve(res)
 			group.promise = createPromise()
