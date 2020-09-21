@@ -57,7 +57,7 @@ CDN.hand('init', async () => {
 		} else { //надо ли сделать предупреждение
 			if (!/^http/.test(href)) continue
 			if (Object.values(conf.cdnjs).includes(src)) continue
-			console.warn('CDN', 'Укажите data-name для тега script', el)	
+			console.warn('CDN', 'Укажите data-name для тега script или добавьте путь в cdnjs', el)	
 		}
 	}
 
@@ -73,7 +73,7 @@ CDN.hand('init', async () => {
 		} else { //надо ли сделать предупреждение
 			if (!/^http/.test(href)) continue
 			if (Object.values(conf.cdncss).includes(href)) continue
-			console.warn('CDN', 'Укажите data-name для тега link', el)
+			console.warn('CDN', 'Укажите data-name для тега link или добавьте путь в cdncss', el)
 		}
 
 		
