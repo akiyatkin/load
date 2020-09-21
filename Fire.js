@@ -260,7 +260,7 @@ let Fire = {
 		let context = getContext(this, name)
 		let event = context.getEvent(obj)
 		return event.whenfree(() => {
-			if (event.promise.result === res) return
+			if (event.promise.start && event.promise.result === res) return 
 			event.drop()
 			context.startonce = true
 			event.promise.start = true
