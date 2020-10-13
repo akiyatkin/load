@@ -4,7 +4,7 @@ import { isViewport } from "/vendor/akiyatkin/load/isViewport.js"
 let second = false
 const inViewport = (el, cb) => {
     return new Promise(resolve => {
-        const hand = () => {
+        const handler = () => CallFrame(() => {
             if (!isViewport(el)) return
             window.removeEventListener('resize', handler)
             window.removeEventListener('scroll', handler)
@@ -12,8 +12,8 @@ const inViewport = (el, cb) => {
             document.body.removeEventListener('mouseover', init)
             if (cb) cb()
             resolve()
-        }
-        const handler = () => CallFrame(hand)
+        })
+
         const init = () => {
             second = true
             handler()
@@ -24,10 +24,15 @@ const inViewport = (el, cb) => {
         window.addEventListener('resize', handler)
         window.addEventListener('scroll', handler)
         
-        //Первая проверка после активности или сразу при следующей проверке
-        if (Crumb.counter < 2) return handler()
+        //Дополнительной проверкой
+        //if (Crumb.counter < 2) return handler()
         document.body.addEventListener('click', init)
         document.body.addEventListener('mouseover', init)
+
+        //Первая проверка после активности или сразу при следующей проверке
+        //if (Crumb.counter < 2) return handler()
+        //document.body.addEventListener('click', init)
+        //document.body.addEventListener('mouseover', init)
     })
 }
 
