@@ -26,8 +26,12 @@ const inViewport = (el, cb) => {
         
         //Дополнительной проверкой
         //if (Crumb.counter < 2) return handler()
-        document.body.addEventListener('click', init)
-        document.body.addEventListener('mouseover', init)
+        if (!second) {
+            document.body.addEventListener('click', init)
+            document.body.addEventListener('mouseover', init)
+        } else {
+            handler()
+        }
 
         //Первая проверка после активности или сразу при следующей проверке
         //if (Crumb.counter < 2) return handler()
