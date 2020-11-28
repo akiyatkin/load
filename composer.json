@@ -1,6 +1,6 @@
 {
 	"name": "akiyatkin/load",
-	"dependencies":{
+	"require":{
 		"akiyatkin/waitshow":"~1"
 	}
 }
