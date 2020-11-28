@@ -1,3 +1,6 @@
 {
-	"name": "akiyatkin/load"
+	"name": "akiyatkin/load",
+	"dependencies":{
+		"akiyatkin/waitshow":"~1"
+	}
 }
