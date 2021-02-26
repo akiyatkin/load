@@ -177,13 +177,16 @@ let Fire = {
 		let group = groups.get(gr)
 		if (!group) groups.set(gr, group = { timer: null, promise: createPromise() })
 
+		const timer = group.timer ? 500 : 1
 		clearTimeout(group.timer)
-		group.timer = setTimeout(() => {
+		group.timer = setTimeout(async () => {
 			let res = this.emit(name, obj, opt)
 			group.promise.resolve(res)
 			group.promise = createPromise()
-		}, 400)
-
+			group.timer = setTimeout(() => {
+				group.timer = null
+			}, 500)
+		}, timer)	
 		return group.promise
 	},
 	chil(name, obj, gr, opt) {

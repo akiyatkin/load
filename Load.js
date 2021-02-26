@@ -57,13 +57,19 @@ Load.hand('script', src => {
 	});
 });
 
-Load.hand('css', src => {
+Load.hand('css', async src => {
     let link  = document.createElement('link')
     link.rel  = 'stylesheet'
 	link.type = 'text/css'
 	link.crossorigin="anonymous"
-    link.href = src
+    link.href = /^http/.test(src) ? src : '/' + src
+    const promise = new Promise(resolve => {
+    	link.onload = () => {
+    		resolve()
+    	}
+    })
     document.getElementsByTagName('head')[0].appendChild(link)
+    return promise
 });
 
 
