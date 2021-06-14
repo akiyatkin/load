@@ -8,6 +8,7 @@ const inViewport = (el, cb) => {
         return new Promise(resolve => {
             const handler = () => CallFrame(() => {
                 if (!isViewport(el)) return
+                
                 window.removeEventListener('resize', handler)
                 window.removeEventListener('scroll', handler)
                 if (cb) cb()
