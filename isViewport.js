@@ -1,4 +1,5 @@
 let isViewport = el => {
+    if (!el) return false
     let H = window.innerHeight
     let r = el.getBoundingClientRect()
     let t = r.top 
