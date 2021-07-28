@@ -1,6 +1,8 @@
 import { Load } from './Load.js'
 import { Config } from '/vendor/infrajs/config/Config.js'
 import { Fire } from '/vendor/akiyatkin/load/Fire.js'
+
+//depricated - use import or link
 let CDN = {
 	...Fire,
 	//Методы вместо событий, так как требуется 2 параметра
@@ -30,6 +32,7 @@ let CDN = {
 	}
 }
 
+//depricated - use import or link
 //Событие, чтобы не запускаться несколько раз при повторных вызовах
 CDN.hand('load', async name => {
 	await CDN.fire('init')
@@ -42,7 +45,7 @@ CDN.hand('load', async name => {
 	await CDN.js(name)
 })
 
-
+//depricated - use import or link
 CDN.hand('init', async () => {
 	let conf, list, i, l, el, name, src, href
 	list = document.getElementsByTagName('script')

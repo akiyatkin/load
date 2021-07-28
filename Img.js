@@ -13,12 +13,14 @@ const Img = {
 			return promise
 		}
 		if (img.complete) {
-			promise = new Promise(resolve => resolve((img.width > 0) && (img.height > 0)))
+			promise = new Promise(resolve => resolve(img.naturalWidth > 0))
+			//promise = new Promise(resolve => resolve(true))
 			ws.set(img, promise)
 			return promise
 		}
 		promise = new Promise(resolve => {
-			img.addEventListener('load', () => resolve((img.width > 0) && (img.height > 0)))
+			img.addEventListener('load', () => resolve(img.naturalWidth > 0))
+			//img.addEventListener('load', () => resolve(true))
 			img.addEventListener('error', () => resolve(false))
 		})
 		if (img.loading) img.loading = 'eager'

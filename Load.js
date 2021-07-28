@@ -43,36 +43,41 @@ Load.hand('json', (src, opt) => {
 	return fetch('/' + src).then( res => res.json()).catch( () => {})
 });
 
+
+//depricated - use import
 Load.hand('script', src => {
-	return new Promise((resolve) => {
-
-		let s = document.createElement("script")
-	    s.type = "text/javascript"
-	    s.async = true
-		s.defer = true
-		s.crossorigin="anonymous"
-	    s.onload = resolve
-		s.src = src
-	    document.getElementsByTagName('head')[0].appendChild(s)
-	});
-});
-
-Load.hand('css', async src => {
-    let link  = document.createElement('link')
-    link.rel  = 'stylesheet'
-	link.type = 'text/css'
-	link.crossorigin="anonymous"
-    link.href = /^http/.test(src) ? src : '/' + src
+	const s = document.createElement("SCRIPT")
+    s.type = "text/javascript"
+    s.async = true
+	s.defer = true
+	s.dataset.added = "dynamically"
+	s.crossorigin = "anonymous"
     const promise = new Promise(resolve => {
-    	link.onload = () => {
-    		resolve()
-    	}
+    	s.onload = resolve
+    	s.src = src
+    	document.head.append(s)
     })
-    document.getElementsByTagName('head')[0].appendChild(link)
     return promise
 });
 
+//depricated - use import or link
+Load.hand('css', async src => {
+    const link  = document.createElement('link')
+    link.rel  = 'stylesheet'
+	link.type = 'text/css'
+	link.dataset.added = "dynamically"
+	link.crossorigin = "anonymous"
+    const promise = new Promise(resolve => link.onload = resolve)
+    link.href = /^http/.test(src) ? src : '/' + src
 
-window.NLoad = Load
-export default Load
-export {Load}
+    for (const l of document.head.getElementsByTagName('link')) {
+    	if (l.dataset.added == "dynamically" && l.nextSibling) {
+    		l.nextSibling.before(link)
+    		return promise
+    	}
+    }
+    document.head.prepend(link)
+    return promise
+});
+
+export { Load }
