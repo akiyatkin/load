@@ -268,9 +268,16 @@ let Fire = {
 			context.startonce = true
 			event.promise.start = true
 			event.promise.startrace = true
+
 			event.promise.starttill = true
+			event.promise.stacktill = []
+
 			event.promise.starthand = true
+			event.promise.stackhand = []
+
 			event.promise.startsyne = true
+			event.promise.stacksyne = []
+
 			event.promise.startdone = true
 			event.promise.resolve(res)
 		})
