@@ -6,15 +6,16 @@ const inActive = new Promise(resolve => {
         window.removeEventListener('click', init)
         window.removeEventListener('mouseover', init)
         window.removeEventListener('resize', init)
-        window.removeEventListener('scroll', init)
+        //window.removeEventListener('scroll', init)
         resolve()
-    }    
+    }
     // document.body.addEventListener('click', init)
     // document.body.addEventListener('mouseover', init)
+
     window.addEventListener('click', init)
     window.addEventListener('mouseover', init)
     window.addEventListener('resize', init)
-    window.addEventListener('scroll', init)
+    //window.addEventListener('scroll', init)
 })
 
 export { inActive }
