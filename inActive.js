@@ -6,6 +6,7 @@ const inActive = new Promise(resolve => {
         window.removeEventListener('click', init)
         window.removeEventListener('mouseover', init)
         window.removeEventListener('resize', init)
+        window.removeEventListener('keypress', init)
         //window.removeEventListener('scroll', init)
         resolve()
     }
@@ -15,6 +16,7 @@ const inActive = new Promise(resolve => {
     window.addEventListener('click', init)
     window.addEventListener('mouseover', init)
     window.addEventListener('resize', init)
+    window.addEventListener('keypress', init)
     //window.addEventListener('scroll', init)
 })
 
