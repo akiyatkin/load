@@ -5,7 +5,7 @@ const hoverBelowViewport = (el, over, out) => {
     let isover = false
     let isout = false
     if (!el) return
-    const handler = () => CallFrame(() => {
+    const func = () => {
         if (isBelowViewport(el)) {
             if (!isover) {
                 isover = true
@@ -19,7 +19,8 @@ const hoverBelowViewport = (el, over, out) => {
                 out()
             }
         }
-    })
+    }
+    const handler = () => CallFrame(func)
     window.addEventListener('resize', handler)
     window.addEventListener('scroll', handler)
     const init = () => {

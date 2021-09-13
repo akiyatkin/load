@@ -6,14 +6,14 @@ import { inActive } from "/vendor/akiyatkin/load/inActive.js"
 const inViewport = (el, cb) => {
     return inActive.then(() => {
         return new Promise(resolve => {
-            const handler = () => CallFrame(() => {
+            const func = () => {
                 if (!isViewport(el)) return
-                
                 window.removeEventListener('resize', handler)
                 window.removeEventListener('scroll', handler)
                 if (cb) cb()
                 resolve()
-            })
+            }
+            const handler = () => CallFrame(func)
             window.addEventListener('resize', handler)
             window.addEventListener('scroll', handler)
             handler()
