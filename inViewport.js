@@ -12,6 +12,7 @@ const inViewport = (el, cb) => {
                 window.removeEventListener('scroll', handler)
                 if (cb) cb()
                 resolve()
+                return true
             }
             const handler = () => CallFrame(func)
             window.addEventListener('resize', handler)
